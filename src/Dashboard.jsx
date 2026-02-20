@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 
 const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const TODAY = new Date().toISOString().slice(0, 10);
@@ -49,8 +49,8 @@ const STORAGE_KEYS = {
 // Storage helpers
 async function load(key, fallback) {
   try {
-    const result = await window.storage.get(key);
-    return result ? JSON.parse(result.value) : fallback;
+    const result = localStorage.getItem(key);
+    return result ? JSON.parse(result) : fallback;
   } catch {
     return fallback;
   }
@@ -58,7 +58,7 @@ async function load(key, fallback) {
 
 async function save(key, data) {
   try {
-    await window.storage.set(key, JSON.stringify(data));
+    localStorage.setItem(key, JSON.stringify(data));
   } catch (e) {
     console.error("Save failed:", e);
   }
@@ -66,7 +66,7 @@ async function save(key, data) {
 
 // Debounce hook
 function useDebounce(fn, delay) {
-  const timer = React.useRef(null);
+  const timer = useRef(null);
   return useCallback((...args) => {
     if (timer.current) clearTimeout(timer.current);
     timer.current = setTimeout(() => fn(...args), delay);
