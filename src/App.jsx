@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 
-const getToday = () => new Date().toISOString().slice(0, 10);
-const getWeekStart = () => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return d.toISOString().slice(0, 10); };
+const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+const getToday = () => fmt(new Date());
+const getWeekStart = () => { const d = new Date(); d.setDate(d.getDate() - d.getDay()); return fmt(d); };
 let TODAY = getToday();
 let WEEK_START = getWeekStart();
 const getSK = () => ({ cl: "cl:today", af: "af:cur", jo: "jo:today", wr: `wr:${WEEK_START}`, wn: `wn:${WEEK_START}`, st: "st:data", ji: "jo:index", hi: "hi:data", ord: "ord:checklist" });
@@ -24,6 +25,7 @@ const CL = [
   { id: "midday", label: "Midday Reset + Prayer", emoji: "🙏", cat: "day", desc: "A 2-minute recalibration. Pause and check: am I still on my lifeline, or have pendulums (news, drama, anxiety) pulled me off? Realign with a brief prayer of gratitude. Return to coherence." },
   { id: "serve", label: "Serve / Connect with People", emoji: "❤️", cat: "evening", desc: "Evening is for people — family, community, church, friendship. This is where \"give first, give freely\" becomes real. Discipleship isn't a solo practice. The one who serves most, leads most." },
   { id: "journal", label: "Journal / Daily Reflection", emoji: "📔", cat: "evening", desc: "Write freely in the Journal tab. Process your day, pray on paper, notice what's shifting. What are you grateful for? Where did you see God move? What would the future you write?" },
+  { id: "breathoflife", label: "Breath of Life", emoji: "🌬️", cat: "evening", desc: "Conscious, intentional breathing — the first thing God gave Adam and the rhythm that sustains every moment. Whether box breathing, physiological sighs, or simply slow nasal breaths, this practice returns you to presence, calms your nervous system, and reminds you that every breath is a gift." },
   { id: "sleeptechnique", label: "Goddard Sleep Technique", emoji: "🌙", cat: "evening", desc: "As you fall asleep, vividly enter a first-person scene that implies your deepest desire is already fulfilled. Feel the joy, the gratitude. The hypnagogic state (between waking and sleep) is your most impressionable — let the last thing you feel be the future you're stepping into." },
 ];
 const PIL = [
@@ -152,11 +154,11 @@ export default function App() {
 
   const tog = (id) => {
     const n = { ...checked, [id]: !checked[id] }; setChecked(n); saveCl(n);
-    const done = Object.entries(n).filter(([k,v])=>v && k !== "_date").map(([k])=>k);
+    const done = CL.map(c => c.id).filter(id => n[id]);
     const nh = { ...history, [TODAY]: { count: done.length, total: CL.length, items: done } };
     setHistory(nh); sv(getSK().hi, nh);
     if (done.length === CL.length) {
-      const y = new Date(); y.setDate(y.getDate()-1); const ys = y.toISOString().slice(0,10);
+      const y = new Date(); y.setDate(y.getDate()-1); const ys = fmt(y);
       const ns = { count: streak.lastDate===ys||streak.lastDate===TODAY ? streak.count+(streak.lastDate===TODAY?0:1) : 1, lastDate: TODAY };
       setStreak(ns); sv(getSK().st, ns);
     }
@@ -164,7 +166,7 @@ export default function App() {
   const upPil = (id, score) => { const n = { ...ps, [id]: score }; setPs(n); sv(getSK().wr, n); };
   const saveAf = (nl) => { setAff(nl); sv(getSK().af, nl); };
   const reorder = (newOrder) => { setOrder(newOrder); sv(getSK().ord, newOrder); };
-  const cc = Object.entries(checked).filter(([k,v])=>v && k !== "_date").length;
+  const cc = CL.filter(c => checked[c.id]).length;
   const prog = CL.length > 0 ? (cc / CL.length) * 100 : 0;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
@@ -1234,7 +1236,7 @@ function TrackerTab({ history, streak }) {
   for (let i = 0; i < heatmapWeeks * 7; i++) {
     const d = new Date(startDay);
     d.setDate(d.getDate() + i);
-    const ds = d.toISOString().slice(0, 10);
+    const ds = fmt(d);
     const isFuture = d > today;
     const entry = history[ds];
     heatmapDays.push({ date: ds, day: d.getDay(), isFuture, count: entry ? entry.count : 0, total: entry ? entry.total : CL.length, perfect: entry ? entry.count === entry.total : false });
