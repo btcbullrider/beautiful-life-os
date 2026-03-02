@@ -167,12 +167,12 @@ export default function App() {
   const prog = CL.length > 0 ? (cc / CL.length) * 100 : 0;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
-  // Derive current streak from history (single source of truth)
+  // Derive current streak from history (any activity = streak day)
   const derivedStreak = (() => {
     const days = Object.keys(history).sort().reverse();
-    const perfect = days.filter(d => history[d].count === history[d].total);
-    if (!perfect.length) return 0;
-    const sorted = [...perfect].sort().reverse();
+    const active = days.filter(d => history[d].count > 0);
+    if (!active.length) return 0;
+    const sorted = [...active].sort().reverse();
     const todayStr = new Date().toISOString().slice(0, 10);
     const yd = new Date(); yd.setDate(yd.getDate() - 1);
     const ydStr = yd.toISOString().slice(0, 10);
@@ -1163,10 +1163,11 @@ function JournalTab({ jo, onChange, joIdx, aff }) {
 function TrackerTab({ history, streak }) {
   // Compute stats
   const days = Object.keys(history).sort();
+  const activeDays = days.filter(d => history[d].count > 0);
   const perfectDays = days.filter(d => history[d].count === history[d].total);
   const totalPerfect = perfectDays.length;
 
-  // Longest perfect streak
+  // Longest streak (any activity)
   const calcLongestStreak = (datelist) => {
     if (!datelist.length) return 0;
     const sorted = [...datelist].sort();
@@ -1180,16 +1181,15 @@ function TrackerTab({ history, streak }) {
     }
     return Math.max(max, cur);
   };
-  const longestStreak = calcLongestStreak(perfectDays);
+  const longestStreak = calcLongestStreak(activeDays);
 
-  // Current perfect streak (derived from history, not separate counter)
+  // Current streak (any activity, derived from history)
   const calcCurrentStreak = (datelist) => {
     if (!datelist.length) return 0;
     const sorted = [...datelist].sort().reverse();
     const todayStr = new Date().toISOString().slice(0, 10);
     const yesterdayDate = new Date(); yesterdayDate.setDate(yesterdayDate.getDate() - 1);
     const yesterdayStr = yesterdayDate.toISOString().slice(0, 10);
-    // Must include today or yesterday to have a current streak
     if (sorted[0] !== todayStr && sorted[0] !== yesterdayStr) return 0;
     let count = 1;
     for (let i = 1; i < sorted.length; i++) {
@@ -1201,7 +1201,7 @@ function TrackerTab({ history, streak }) {
     }
     return count;
   };
-  const currentStreak = calcCurrentStreak(perfectDays);
+  const currentStreak = calcCurrentStreak(activeDays);
 
   // Per-practice streaks (current)
   const calcPracticeStreak = (practiceId) => {
