@@ -1203,9 +1203,6 @@ function TrackerTab({ history, streak }) {
   };
   const currentStreak = calcCurrentStreak(activeDays);
 
-  // TEMP DEBUG — remove after fixing
-  const debugToday = new Date().toISOString().slice(0, 10);
-  const debugInfo = `TODAY: ${debugToday} | history keys: ${days.join(", ")} | active: ${activeDays.join(", ")} | perfect: ${perfectDays.join(", ")} | currentStreak: ${currentStreak} | longestStreak: ${longestStreak}`;
   // Per-practice streaks (current)
   const calcPracticeStreak = (practiceId) => {
     const sorted = [...days].sort().reverse();
@@ -1307,10 +1304,6 @@ function TrackerTab({ history, streak }) {
   });
 
   return (<div>
-    {/* TEMP DEBUG — remove after fixing */}
-    <div style={{ background: "#1a1a2e", border: "1px solid #C8A951", padding: "1rem", marginBottom: "1rem", fontSize: "0.7rem", color: "#C8A951", wordBreak: "break-all", borderRadius: 4 }}>
-      <div><strong>DEBUG:</strong> {debugInfo}</div>
-    </div>
     {/* Current Award Banner */}
     {currentAward && (
       <div style={{ textAlign: "center", padding: "1.5rem", marginBottom: "1.5rem", background: `linear-gradient(135deg, ${currentAward.color}10, ${currentAward.color}05)`, border: `1px solid ${currentAward.color}30`, borderRadius: 3 }}>
