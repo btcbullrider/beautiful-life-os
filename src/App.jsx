@@ -43,10 +43,23 @@ const ld = async (k, fb) => { try { const r = localStorage.getItem(k); return r 
 const sv = async (k, d) => { try { localStorage.setItem(k, JSON.stringify(d)); } catch { /* ignore */ } };
 const TC = { blue: "#4A6FA5", violet: "#6A5A8A", green: "#5A8A6A", amber: "#A57A3A", rose: "#A5566A", gold: "#C8A951" };
 
+const getTarget = (entry) => {
+  if (!entry) return CL.length;
+  if (typeof entry === "number" || Array.isArray(entry)) return 13;
+  return entry.total || 13;
+};
+const getCount = (entry) => {
+  if (!entry) return 0;
+  if (typeof entry === "number") return entry;
+  if (Array.isArray(entry)) return entry.length;
+  if (entry.count !== undefined) return entry.count;
+  return entry.items ? entry.items.length : 0;
+};
 const isPerfect = (entry) => {
   if (!entry) return false;
-  const target = entry.total || 13;
-  return entry.count >= target && entry.count > 0;
+  const target = getTarget(entry);
+  const count = getCount(entry);
+  return count >= target && count > 0;
 };
 const calcCurrentStreak = (historyObj) => {
   let streakCount = 0;
@@ -1281,14 +1294,13 @@ function TrackerTab({ history, currentStreak }) {
     const ds = fmt(d);
     const isFuture = d > today;
     const entry = history[ds];
-    const target = entry ? (entry.total || 13) : CL.length;
     heatmapDays.push({
       date: ds,
       day: d.getDay(),
       isFuture,
-      count: entry ? entry.count : 0,
-      total: target,
-      perfect: entry ? (entry.count >= target && entry.count > 0) : false
+      count: getCount(entry),
+      total: getTarget(entry),
+      perfect: isPerfect(entry)
     });
   }
 
