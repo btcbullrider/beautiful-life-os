@@ -1,4 +1,5 @@
-import { useState, useEffect, useCallback, useRef } from "react";
+
+import { useState, useEffect, useRef } from "react";
 
 const fmt = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
 const getToday = () => fmt(new Date());
@@ -39,24 +40,23 @@ const PIL = [
   { id: "rest", name: "Rest in the Mystery", short: "Sabbath", color: "#8A7A6A" },
 ];
 const ld = async (k, fb) => { try { const r = localStorage.getItem(k); return r ? JSON.parse(r) : fb; } catch { return fb; } };
-const sv = async (k, d) => { try { localStorage.setItem(k, JSON.stringify(d)); } catch { } };
+const sv = async (k, d) => { try { localStorage.setItem(k, JSON.stringify(d)); } catch { /* ignore */ } };
 const TC = { blue: "#4A6FA5", violet: "#6A5A8A", green: "#5A8A6A", amber: "#A57A3A", rose: "#A5566A", gold: "#C8A951" };
-const s = (base, extra) => ({ ...base, ...extra });
 
-const isPerfect = (entry, clLen) => {
+const isPerfect = (entry) => {
   if (!entry) return false;
   const target = entry.total || 13;
   return entry.count >= target && entry.count > 0;
 };
-const calcCurrentStreak = (historyObj, clLen) => {
+const calcCurrentStreak = (historyObj) => {
   let streakCount = 0;
   const today = new Date();
   const todayDs = fmt(today);
   let d = new Date(todayDs + "T12:00:00");
-  if (!isPerfect(historyObj[todayDs], clLen)) {
+  if (!isPerfect(historyObj[todayDs])) {
     d.setDate(d.getDate() - 1);
   }
-  while (isPerfect(historyObj[fmt(d)], clLen)) {
+  while (isPerfect(historyObj[fmt(d)])) {
     streakCount++;
     d.setDate(d.getDate() - 1);
   }
@@ -194,7 +194,7 @@ export default function App() {
   const cc = CL.filter(c => checked[c.id]).length;
   const prog = CL.length > 0 ? (cc / CL.length) * 100 : 0;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
-  const currentStreak = calcCurrentStreak(history, CL.length);
+  const currentStreak = calcCurrentStreak(history);
 
   if (!loaded) return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0D0F14", gap: "1rem" }}><div style={{ fontSize: "2rem", color: "#C8A951" }}>✦</div><div style={{ color: "#8A8678", fontSize: "0.85rem" }}>Loading...</div></div>;
 
@@ -788,14 +788,15 @@ function DeepWorkTab() {
 // ════════════════════════════════════════
 // ENERGY TAB
 // ════════════════════════════════════════
+const defaultEnergy = {
+  morning: { energy: 0, note: "", meals: [] },
+  midday: { energy: 0, note: "", meals: [] },
+  evening: { energy: 0, note: "", meals: [] },
+};
+
 function EnergyTab() {
   const SK_EN = "en:today";
   const SK_ENI = "en:index";
-  const defaultEnergy = {
-    morning: { energy: 0, note: "", meals: [] },
-    midday: { energy: 0, note: "", meals: [] },
-    evening: { energy: 0, note: "", meals: [] },
-  };
   const [data, setData] = useState(defaultEnergy);
   const [loaded, setLoaded] = useState(false);
   const [newMeals, setNewMeals] = useState({ morning: "", midday: "", evening: "" });
@@ -845,7 +846,9 @@ function EnergyTab() {
   const addMealTo = (period) => {
     const text = newMeals[period];
     if (!text || !text.trim()) return;
-    const meal = { id: Date.now(), text: text.trim(), time: new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }) };
+    const ts = new Date().getTime();
+    const tsString = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+    const meal = { id: ts, text: text.trim(), time: tsString };
     persist({ ...data, [period]: { ...data[period], meals: [...(data[period].meals || []), meal] } });
     setNewMeals({ ...newMeals, [period]: "" });
   };
@@ -1107,10 +1110,9 @@ function JournalTab({ jo, onChange, joIdx, aff }) {
   // Dynamic prompts generated from current affirmations
   const affPrompts = (aff || []).filter(a => a.trim()).map(a => {
     const clean = a.replace(/^I am /i, "").replace(/^I /i, "").replace(/\.$/, "");
-    return `How did I live out "${a.length > 60 ? a.slice(0, 57) + "..." : a}" today?`;
+    return `How did I live out "${clean.length > 60 ? clean.slice(0, 57) + "..." : clean}" today?`;
   });
 
-  const allPrompts = [...corePrompts, ...affPrompts];
   const sortedDates = [...joIdx].sort().reverse().filter(d => d !== TODAY);
 
   const fmtDate = (d) => {
@@ -1186,7 +1188,7 @@ function JournalTab({ jo, onChange, joIdx, aff }) {
 function TrackerTab({ history, currentStreak }) {
   // Compute stats
   const days = Object.keys(history).sort();
-  const perfectDays = days.filter(d => isPerfect(history[d], CL.length));
+  const perfectDays = days.filter(d => isPerfect(history[d]));
   const totalPerfect = perfectDays.length;
 
   // Longest perfect streak
