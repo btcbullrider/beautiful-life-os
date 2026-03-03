@@ -1,3 +1,4 @@
+import { Quote } from "./shared/UI";
 import { TODAY } from "../utils/storage";
 import { useState } from "react";
 import { CL } from "../utils/constants";
