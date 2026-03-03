@@ -108,13 +108,15 @@ export default function TrackerTab({ history }) {
   const currentAward = getAward(currentStreak);
   const nextAward = allAwards.find(a => a.need > currentStreak);
 
-  // Heatmap: last 12 weeks
-  const heatmapWeeks = 12;
+  // Heatmap: from first entry to today
   const heatmapDays = [];
   const today = new Date();
-  const startDay = new Date(today);
-  startDay.setDate(startDay.getDate() - (heatmapWeeks * 7 - 1) - startDay.getDay());
-  for (let i = 0; i < heatmapWeeks * 7; i++) {
+  const sortedDates = Object.keys(history).sort();
+  const firstEntry = sortedDates.length > 0 ? new Date(sortedDates[0] + "T12:00:00") : new Date(today);
+  const startDay = new Date(firstEntry);
+  startDay.setDate(startDay.getDate() - startDay.getDay()); // align to Sunday
+  const totalDays = Math.ceil((today - startDay) / 86400000) + (7 - today.getDay());
+  for (let i = 0; i < totalDays; i++) {
     const d = new Date(startDay);
     d.setDate(d.getDate() + i);
     const ds = d.toISOString().slice(0, 10);
@@ -174,7 +176,7 @@ export default function TrackerTab({ history }) {
 
     {/* Heatmap */}
     <div style={{ marginBottom: "2rem" }}>
-      <div style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678", marginBottom: "0.8rem" }}>Last {heatmapWeeks} weeks</div>
+      <div style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678", marginBottom: "0.8rem" }}>Your journey</div>
       <div style={{ position: "relative" }}>
         {/* Month labels */}
         <div style={{ display: "flex", paddingLeft: 28, marginBottom: "0.3rem" }}>
@@ -186,7 +188,7 @@ export default function TrackerTab({ history }) {
         <div style={{ display: "flex", gap: 0 }}>
           {/* Day labels */}
           <div style={{ display: "flex", flexDirection: "column", gap: 2, marginRight: 4, justifyContent: "space-around" }}>
-            {["", "M", "", "W", "", "F", ""].map((l, i) => <div key={i} style={{ height: 12, fontSize: "0.5rem", color: "#5A5A4A", display: "flex", alignItems: "center" }}>{l}</div>)}
+            {["S", "M", "T", "W", "T", "F", "S"].map((l, i) => <div key={i} style={{ height: 12, fontSize: "0.5rem", color: "#5A5A4A", display: "flex", alignItems: "center" }}>{l}</div>)}
           </div>
           {/* Grid */}
           <div style={{ display: "flex", gap: 2, flex: 1 }}>
