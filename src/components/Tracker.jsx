@@ -1,7 +1,6 @@
-import { Quote } from "./shared/UI";
-import { TODAY } from "../utils/storage";
 import { useState } from "react";
 import { CL } from "../utils/constants";
+import { Quote } from "./shared/UI";
 
 export default function TrackerTab({ history }) {
   // Compute stats
@@ -83,14 +82,14 @@ export default function TrackerTab({ history }) {
 
   // Awards system
   const getAward = (streak) => {
-    if (streak >= 365) return { icon: "👑", title: "Year of the Lord", desc: "365 perfect days", color: "#C8A951" };
-    if (streak >= 100) return { icon: "🔥", title: "Refined by Fire", desc: "100 perfect days", color: "#E8743A" };
-    if (streak >= 60) return { icon: "⚡", title: "Lightning Rod", desc: "60 perfect days", color: "#4A6FA5" };
-    if (streak >= 30) return { icon: "🌊", title: "Living Water", desc: "30 perfect days", color: "#4A8FA5" };
-    if (streak >= 14) return { icon: "🌿", title: "Deep Roots", desc: "14 perfect days", color: "#5A8A6A" };
-    if (streak >= 7) return { icon: "🕊️", title: "Sabbath Complete", desc: "7 perfect days", color: "#A09ABB" };
-    if (streak >= 3) return { icon: "🌱", title: "Mustard Seed", desc: "3 perfect days", color: "#7A9A6A" };
-    if (streak >= 1) return { icon: "✦", title: "First Fruits", desc: "Day 1 complete", color: "#C8A951" };
+    if (streak >= 365) return { icon: "\u{1F451}", title: "Year of the Lord", desc: "365 perfect days", color: "#C8A951" };
+    if (streak >= 100) return { icon: "\u{1F525}", title: "Refined by Fire", desc: "100 perfect days", color: "#E8743A" };
+    if (streak >= 60) return { icon: "\u26A1", title: "Lightning Rod", desc: "60 perfect days", color: "#4A6FA5" };
+    if (streak >= 30) return { icon: "\u{1F30A}", title: "Living Water", desc: "30 perfect days", color: "#4A8FA5" };
+    if (streak >= 14) return { icon: "\u{1F33F}", title: "Deep Roots", desc: "14 perfect days", color: "#5A8A6A" };
+    if (streak >= 7) return { icon: "\u{1F54A}\uFE0F", title: "Sabbath Complete", desc: "7 perfect days", color: "#A09ABB" };
+    if (streak >= 3) return { icon: "\u{1F331}", title: "Mustard Seed", desc: "3 perfect days", color: "#7A9A6A" };
+    if (streak >= 1) return { icon: "\u2726", title: "First Fruits", desc: "Day 1 complete", color: "#C8A951" };
     return null;
   };
 
@@ -108,45 +107,31 @@ export default function TrackerTab({ history }) {
   const currentAward = getAward(currentStreak);
   const nextAward = allAwards.find(a => a.need > currentStreak);
 
-  // Heatmap: from first entry to today
-  const heatmapDays = [];
+  // Calendar heatmap: from first entry to current month
   const today = new Date();
+  const todayStr = today.toISOString().slice(0, 10);
   const sortedDates = Object.keys(history).sort();
   const firstEntry = sortedDates.length > 0 ? new Date(sortedDates[0] + "T12:00:00") : new Date(today);
-  const startDay = new Date(firstEntry);
-  startDay.setDate(startDay.getDate() - startDay.getDay()); // align to Sunday
-  const totalDays = Math.ceil((today - startDay) / 86400000) + (7 - today.getDay());
-  for (let i = 0; i < totalDays; i++) {
-    const d = new Date(startDay);
-    d.setDate(d.getDate() + i);
-    const ds = d.toISOString().slice(0, 10);
-    const isFuture = d > today;
-    const entry = history[ds];
-    heatmapDays.push({ date: ds, day: d.getDay(), isFuture, count: entry ? entry.count : 0, total: entry ? entry.total : CL.length, perfect: entry ? entry.count === entry.total : false });
+
+  const months = [];
+  const cursor = new Date(firstEntry.getFullYear(), firstEntry.getMonth(), 1);
+  const endMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+  while (cursor <= endMonth) {
+    months.push({ year: cursor.getFullYear(), month: cursor.getMonth() });
+    cursor.setMonth(cursor.getMonth() + 1);
   }
 
-  const weeks = [];
-  for (let i = 0; i < heatmapDays.length; i += 7) weeks.push(heatmapDays.slice(i, i + 7));
-
-  const getHeatColor = (day) => {
-    if (day.isFuture) return "rgba(255,255,255,0.02)";
-    if (day.count === 0) return "rgba(255,255,255,0.04)";
-    if (day.perfect) return "#C8A951";
-    const ratio = day.count / day.total;
+  const getHeatColor = (count, total, isFuture) => {
+    if (isFuture) return "transparent";
+    if (count === 0) return "rgba(255,255,255,0.04)";
+    if (count === total) return "#C8A951";
+    const ratio = count / total;
     if (ratio >= 0.7) return "rgba(200,169,81,0.5)";
     if (ratio >= 0.4) return "rgba(200,169,81,0.25)";
     return "rgba(200,169,81,0.12)";
   };
 
-  const monthLabels = [];
-  let lastMonth = -1;
-  weeks.forEach((week, wi) => {
-    const d = new Date(week[0].date + "T12:00:00");
-    if (d.getMonth() !== lastMonth) {
-      monthLabels.push({ idx: wi, label: d.toLocaleDateString("en-US", { month: "short" }) });
-      lastMonth = d.getMonth();
-    }
-  });
+  const dayHeaders = ["S","M","T","W","T","F","S"];
 
   return (<div>
     {/* Current Award Banner */}
@@ -155,7 +140,7 @@ export default function TrackerTab({ history }) {
         <div style={{ fontSize: "2.5rem", marginBottom: "0.5rem" }}>{currentAward.icon}</div>
         <div style={{ fontSize: "1.1rem", fontWeight: 500, color: currentAward.color, marginBottom: "0.15rem" }}>{currentAward.title}</div>
         <div style={{ fontSize: "0.75rem", color: "#8A8678" }}>{currentStreak} day streak — {currentAward.desc}</div>
-        {nextAward && <div style={{ fontSize: "0.7rem", color: "#6A6A5A", marginTop: "0.5rem" }}>{nextAward.need - currentStreak} days until "{nextAward.title}" {nextAward.icon}</div>}
+        {nextAward && <div style={{ fontSize: "0.7rem", color: "#6A6A5A", marginTop: "0.5rem" }}>{nextAward.need - currentStreak} days until &quot;{nextAward.title}&quot; {nextAward.icon}</div>}
       </div>
     )}
 
@@ -174,45 +159,52 @@ export default function TrackerTab({ history }) {
       ))}
     </div>
 
-    {/* Heatmap */}
+    {/* Calendar Heatmap */}
     <div style={{ marginBottom: "2rem" }}>
       <div style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678", marginBottom: "0.8rem" }}>Your journey</div>
-      <div style={{ position: "relative" }}>
-        {/* Month labels */}
-        <div style={{ display: "flex", paddingLeft: 28, marginBottom: "0.3rem" }}>
-          {weeks.map((_, wi) => {
-            const ml = monthLabels.find(m => m.idx === wi);
-            return <div key={wi} style={{ flex: 1, fontSize: "0.55rem", color: "#6A6A5A" }}>{ml ? ml.label : ""}</div>;
-          })}
-        </div>
-        <div style={{ display: "flex", gap: 0 }}>
-          {/* Day labels */}
-          <div style={{ display: "flex", flexDirection: "column", gap: 2, marginRight: 4, justifyContent: "space-around" }}>
-            {["S", "M", "T", "W", "T", "F", "S"].map((l, i) => <div key={i} style={{ height: 12, fontSize: "0.5rem", color: "#5A5A4A", display: "flex", alignItems: "center" }}>{l}</div>)}
-          </div>
-          {/* Grid */}
-          <div style={{ display: "flex", gap: 2, flex: 1 }}>
-            {weeks.map((week, wi) => (
-              <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 2, flex: 1 }}>
-                {week.map((day, di) => (
-                  <div key={di} title={day.isFuture ? "" : `${day.date}: ${day.count}/${day.total}`} style={{
-                    aspectRatio: "1", borderRadius: 2, background: getHeatColor(day),
-                    border: day.date === TODAY ? "1.5px solid #C8A951" : "none",
-                    minHeight: 12
-                  }} />
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+        {months.map((m, mi) => {
+          const firstDay = new Date(m.year, m.month, 1);
+          const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
+          const startDow = firstDay.getDay();
+          const monthLabel = firstDay.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+          const cells = [];
+          for (let i = 0; i < startDow; i++) cells.push(null);
+          for (let d = 1; d <= daysInMonth; d++) {
+            const ds = `${m.year}-${String(m.month+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+            const entry = history[ds];
+            const isFuture = new Date(ds + "T12:00:00") > today;
+            cells.push({ day: d, date: ds, isFuture, count: entry ? entry.count : 0, total: entry ? entry.total : CL.length });
+          }
+          return (
+            <div key={mi} style={{ minWidth: 160 }}>
+              <div style={{ fontSize: "0.6rem", color: "#8A8678", marginBottom: "0.3rem", fontWeight: 500 }}>{monthLabel}</div>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+                {dayHeaders.map((h, hi) => <div key={hi} style={{ fontSize: "0.45rem", color: "#5A5A4A", textAlign: "center", paddingBottom: 2 }}>{h}</div>)}
+                {cells.map((cell, ci) => cell === null ? (
+                  <div key={"e"+ci} />
+                ) : (
+                  <div key={cell.date} title={cell.isFuture ? "" : `${cell.date}: ${cell.count}/${cell.total}`} style={{
+                    width: "100%", aspectRatio: "1", borderRadius: 2,
+                    background: getHeatColor(cell.count, cell.total, cell.isFuture),
+                    border: cell.date === todayStr ? "1.5px solid #C8A951" : "none",
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    fontSize: "0.45rem", color: cell.isFuture ? "#2A2A2A" : cell.count > 0 ? "#0D0F14" : "#4A4A3A",
+                    fontWeight: cell.date === todayStr ? 600 : 400,
+                  }}>{cell.day}</div>
                 ))}
               </div>
-            ))}
-          </div>
-        </div>
-        {/* Legend */}
-        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", justifyContent: "flex-end", marginTop: "0.5rem" }}>
-          <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>Less</span>
-          {["rgba(255,255,255,0.04)", "rgba(200,169,81,0.12)", "rgba(200,169,81,0.25)", "rgba(200,169,81,0.5)", "#C8A951"].map((c, i) => (
-            <div key={i} style={{ width: 10, height: 10, borderRadius: 1, background: c }} />
-          ))}
-          <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>More</span>
-        </div>
+            </div>
+          );
+        })}
+      </div>
+      {/* Legend */}
+      <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", justifyContent: "flex-end", marginTop: "0.8rem" }}>
+        <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>Less</span>
+        {["rgba(255,255,255,0.04)", "rgba(200,169,81,0.12)", "rgba(200,169,81,0.25)", "rgba(200,169,81,0.5)", "#C8A951"].map((c, i) => (
+          <div key={i} style={{ width: 10, height: 10, borderRadius: 1, background: c }} />
+        ))}
+        <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>More</span>
       </div>
     </div>
 
@@ -230,7 +222,7 @@ export default function TrackerTab({ history }) {
             </div>
             <div style={{ textAlign: "right" }}>
               <div style={{ fontSize: "1rem", fontWeight: 600, color: isPR && p.current > 1 ? "#C8A951" : "#8A8678" }}>
-                {p.current}{isPR && p.current > 1 && " 🔥"}
+                {p.current}{isPR && p.current > 1 && " \u{1F525}"}
               </div>
               <div style={{ fontSize: "0.55rem", color: "#5A5A4A" }}>best: {p.best}</div>
             </div>
@@ -261,10 +253,6 @@ export default function TrackerTab({ history }) {
       </div>
     </div>
 
-    <Quote text={'"Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up."'} ref="Galatians 6:9" />
+    <Quote text={"Let us not become weary in doing good, for at the proper time we will reap a harvest if we do not give up."} ref="Galatians 6:9" />
   </div>);
 }
-
-// ════════════════════════════════════════
-// WEEKLY REVIEW TAB
-// ════════════════════════════════════════
