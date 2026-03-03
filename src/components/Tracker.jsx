@@ -162,7 +162,7 @@ export default function TrackerTab({ history }) {
     {/* Calendar Heatmap */}
     <div style={{ marginBottom: "2rem" }}>
       <div style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678", marginBottom: "0.8rem" }}>Your journey</div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "1.5rem" }}>
         {months.map((m, mi) => {
           const firstDay = new Date(m.year, m.month, 1);
           const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
@@ -177,10 +177,10 @@ export default function TrackerTab({ history }) {
             cells.push({ day: d, date: ds, isFuture, count: entry ? entry.count : 0, total: entry ? entry.total : CL.length });
           }
           return (
-            <div key={mi} style={{ minWidth: 160 }}>
-              <div style={{ fontSize: "0.6rem", color: "#8A8678", marginBottom: "0.3rem", fontWeight: 500 }}>{monthLabel}</div>
+            <div key={mi} style={{ minWidth: 240 }}>
+              <div style={{ fontSize: "0.75rem", color: "#8A8678", marginBottom: "0.4rem", fontWeight: 500 }}>{monthLabel}</div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
-                {dayHeaders.map((h, hi) => <div key={hi} style={{ fontSize: "0.45rem", color: "#5A5A4A", textAlign: "center", paddingBottom: 2 }}>{h}</div>)}
+                {dayHeaders.map((h, hi) => <div key={hi} style={{ fontSize: "0.6rem", color: "#5A5A4A", textAlign: "center", paddingBottom: 2 }}>{h}</div>)}
                 {cells.map((cell, ci) => cell === null ? (
                   <div key={"e"+ci} />
                 ) : (
@@ -189,7 +189,7 @@ export default function TrackerTab({ history }) {
                     background: getHeatColor(cell.count, cell.total, cell.isFuture),
                     border: cell.date === todayStr ? "1.5px solid #C8A951" : "none",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: "0.45rem", color: cell.isFuture ? "#2A2A2A" : cell.count > 0 ? "#0D0F14" : "#4A4A3A",
+                    fontSize: "0.6rem", color: cell.isFuture ? "#2A2A2A" : cell.count > 0 ? "#0D0F14" : "#4A4A3A",
                     fontWeight: cell.date === todayStr ? 600 : 400,
                   }}>{cell.day}</div>
                 ))}
