@@ -6,9 +6,7 @@ import GuideTab from "./components/Guide";
 import TodayTab from "./components/Today";
 import TrackerTab from "./components/Tracker";
 import DeepWorkTab from "./components/DeepWork";
-import EnergyTab from "./components/Energy";
 import AffTab from "./components/Affirmations";
-import JournalTab from "./components/Journal";
 import CoachTab from "./components/Coach";
 import ReviewTab from "./components/Review";
 
@@ -121,7 +119,7 @@ export default function App() {
 
   if (!loaded) return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0D0F14", gap: "1rem" }}><div style={{ fontSize: "2rem", color: "#C8A951" }}>✦</div><div style={{ color: "#8A8678", fontSize: "0.85rem" }}>Loading...</div></div>;
 
-  const tabs = [{ k: "guide", l: "✦ Guide" }, { k: "today", l: "Today" }, { k: "tracker", l: "Tracker" }, { k: "deepwork", l: "Deep Work" }, { k: "energy", l: "Energy" }, { k: "affirmations", l: "Affirmations" }, { k: "journal", l: "Journal" }, { k: "coach", l: "Coach" }, { k: "review", l: "Review" }];
+  const tabs = [{ k: "guide", l: "✦ Guide" }, { k: "today", l: "Today" }, { k: "tracker", l: "Tracker" }, { k: "deepwork", l: "Deep Work" }, { k: "affirmations", l: "Affirmations" }, { k: "coach", l: "Coach" }, { k: "review", l: "Review" }];
 
   return (
     <div style={{ minHeight: "100vh", background: "#0D0F14", color: "#E8E4DC", fontFamily: "'DM Sans','Helvetica Neue',sans-serif", fontWeight: 300 }}>
@@ -141,12 +139,10 @@ export default function App() {
         </nav>
         <main style={{ padding: "1.5rem 0 3rem" }}>
           {tab === "guide" && <GuideTab />}
-          {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} />}
+          {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} />}
           {tab === "tracker" && <TrackerTab history={history} />}
           {tab === "deepwork" && <DeepWorkTab />}
-          {tab === "energy" && <EnergyTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}
-          {tab === "journal" && <JournalTab jo={journal} onChange={v => { setJournal(v); saveJo(v); }} joIdx={joIdx} aff={aff} />}
           {tab === "coach" && <CoachTab data={{ habits: checked, energy: {}, journal: {}, affirmations: aff, affirmationsDone: false, weeklyReviews: {} }} persist={() => { }} history={history} />}
           {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} />}
         </main>
