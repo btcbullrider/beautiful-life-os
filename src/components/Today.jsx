@@ -76,13 +76,10 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
 
   // Build ordered items per category
   const getItemsForCat = (catKey) => {
-    const fromOrder = order
-      .map(id => CL.find(c => c.id === id))
-      .filter(Boolean)
-      .filter(c => c.cat === catKey);
-    // Add any new CL items not in saved order
-    const missing = CL.filter(c => c.cat === catKey && !order.includes(c.id));
-    return [...fromOrder, ...missing];
+    return order
+      .filter(o => o.cat === catKey)
+      .map(o => CL.find(c => c.id === o.id))
+      .filter(Boolean);
   };
 
   const onDragStart = (e, id) => {
@@ -104,42 +101,51 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
     e.preventDefault();
     e.stopPropagation();
     if (!dragId || dragId === targetId) { setDragId(null); setOverId(null); setOverCat(null); return; }
-    // Get target's category
-    const targetItem = CL.find(c => c.id === targetId);
-    const dragItem = CL.find(c => c.id === dragId);
-    if (targetItem && dragItem) dragItem.cat = targetItem.cat;
-    // Reorder
+
     const newOrder = [...order];
-    const fromIdx = newOrder.indexOf(dragId);
-    const toIdx = newOrder.indexOf(targetId);
+    const fromIdx = newOrder.findIndex(o => o.id === dragId);
+    if (fromIdx === -1) return;
+    const itemToMove = newOrder[fromIdx];
+
+    const targetIdx = newOrder.findIndex(o => o.id === targetId);
+    if (targetIdx === -1) return;
+
+    itemToMove.cat = newOrder[targetIdx].cat;
+
     newOrder.splice(fromIdx, 1);
-    newOrder.splice(toIdx, 0, dragId);
+    newOrder.splice(targetIdx, 0, itemToMove);
+
     onReorder(newOrder);
     setDragId(null); setOverId(null); setOverCat(null);
   };
   const onDropOnCat = (e, catKey) => {
     e.preventDefault();
     if (!dragId) { setDragId(null); setOverId(null); setOverCat(null); return; }
-    const dragItem = CL.find(c => c.id === dragId);
-    if (dragItem) dragItem.cat = catKey;
-    // Move to end of that category's items in order
-    const newOrder = order.filter(id => id !== dragId);
-    const catItems = newOrder.filter(id => { const it = CL.find(c => c.id === id); return it && it.cat === catKey; });
+
+    const newOrder = [...order];
+    const fromIdx = newOrder.findIndex(o => o.id === dragId);
+    if (fromIdx === -1) return;
+    const itemToMove = newOrder[fromIdx];
+
+    itemToMove.cat = catKey;
+    newOrder.splice(fromIdx, 1);
+
+    const catItems = newOrder.filter(o => o.cat === catKey);
     const lastCatItem = catItems[catItems.length - 1];
     if (lastCatItem) {
-      const insertIdx = newOrder.indexOf(lastCatItem) + 1;
-      newOrder.splice(insertIdx, 0, dragId);
+      const insertIdx = newOrder.findIndex(o => o.id === lastCatItem.id) + 1;
+      newOrder.splice(insertIdx, 0, itemToMove);
     } else {
-      // Empty category — find where this cat section should be
       const catOrder = ["morning", "day", "evening"];
       const catIdx = catOrder.indexOf(catKey);
       let insertIdx = newOrder.length;
       for (let ci = catIdx + 1; ci < catOrder.length; ci++) {
-        const firstInNext = newOrder.find(id => { const it = CL.find(c => c.id === id); return it && it.cat === catOrder[ci]; });
-        if (firstInNext) { insertIdx = newOrder.indexOf(firstInNext); break; }
+        const firstInNext = newOrder.find(o => o.cat === catOrder[ci]);
+        if (firstInNext) { insertIdx = newOrder.findIndex(o => o.id === firstInNext.id); break; }
       }
-      newOrder.splice(insertIdx, 0, dragId);
+      newOrder.splice(insertIdx, 0, itemToMove);
     }
+
     onReorder(newOrder);
     setDragId(null); setOverId(null); setOverCat(null);
   };

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { CL, DEFAULT_AFF } from "./utils/constants";
-import { getToday, getWeekStart, getSK, ld, sv, TODAY, WEEK_START, refreshDates } from "./utils/storage";
+import { getToday, getSK, ld, sv, TODAY, WEEK_START, refreshDates } from "./utils/storage";
 import { calcCurrentStreak } from "./utils/streaks";
 import GuideTab from "./components/Guide";
 import TodayTab from "./components/Today";
@@ -21,7 +21,7 @@ export default function App() {
   const [wn, setWn] = useState("");
   const [streak, setStreak] = useState({ count: 0, lastDate: "" });
   const [history, setHistory] = useState({});
-  const [order, setOrder] = useState(CL.map(c => c.id));
+  const [order, setOrder] = useState(CL.map(c => ({ id: c.id, cat: c.cat })));
   const [currentDate, setCurrentDate] = useState(TODAY);
   const [joIdx, setJoIdx] = useState([]);
   const [weeklyReviews, setWeeklyReviews] = useState({});
@@ -77,8 +77,14 @@ export default function App() {
       setAff(a); setPs(p); setWn(w); setStreak(st); setJoIdx(localJoIdx); setHistory(hi); setWeeklyReviews(wrvs);
       if (ord) {
         const validIds = new Set(CL.map(c => c.id));
-        const cleaned = ord.filter(id => validIds.has(id));
-        const missing = CL.filter(c => !cleaned.includes(c.id)).map(c => c.id);
+        let cleaned = [];
+        if (ord.length > 0 && typeof ord[0] === 'string') {
+          cleaned = ord.filter(id => validIds.has(id)).map(id => ({ id, cat: CL.find(c => c.id === id).cat }));
+        } else {
+          cleaned = ord.filter(o => o && validIds.has(o.id));
+        }
+        const cleanedIds = cleaned.map(o => o.id);
+        const missing = CL.filter(c => !cleanedIds.includes(c.id)).map(c => ({ id: c.id, cat: c.cat }));
         setOrder([...cleaned, ...missing]);
       }
       setLoaded(true);
@@ -98,7 +104,7 @@ export default function App() {
 
   const tog = (id) => {
     const n = { ...checked, [id]: !checked[id] }; setChecked(n); saveCl(n);
-    const done = Object.entries(n).filter(([k, v]) => v && k !== "_date").map(([k]) => k);
+    const done = Object.entries(n).filter(([k, v]) => v && k !== "_date" && CL.find(c => c.id === k)).map(([k]) => k);
     const nh = { ...history, [getToday()]: { count: done.length, total: CL.length, items: done } };
     setHistory(nh); sv(getSK().hi, nh);
     if (done.length === CL.length) {
@@ -117,6 +123,7 @@ export default function App() {
     } else {
       newItems = newItems.filter(i => i !== id);
     }
+    newItems = newItems.filter(i => CL.find(c => c.id === i));
     const nh = { ...history, [date]: { ...entry, count: newItems.length, total: CL.length, items: newItems } };
     setHistory(nh); sv(getSK().hi, nh);
     if (date === getToday()) {
@@ -128,7 +135,7 @@ export default function App() {
   const upPil = (id, score) => { const n = { ...ps, [id]: score }; setPs(n); sv(getSK().wr, n); };
   const saveAf = (nl) => { setAff(nl); sv(getSK().af, nl); };
   const reorder = (newOrder) => { setOrder(newOrder); sv(getSK().ord, newOrder); };
-  const cc = Object.entries(checked).filter(([k, v]) => v && k !== "_date").length;
+  const cc = Object.entries(checked).filter(([k, v]) => v && k !== "_date" && CL.find(c => c.id === k)).length;
   const prog = CL.length > 0 ? (cc / CL.length) * 100 : 0;
   const dateStr = new Date().toLocaleDateString("en-US", { weekday: "long", month: "long", day: "numeric", year: "numeric" });
 
