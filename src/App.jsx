@@ -24,6 +24,7 @@ export default function App() {
   const [order, setOrder] = useState(CL.map(c => c.id));
   const [currentDate, setCurrentDate] = useState(TODAY);
   const [joIdx, setJoIdx] = useState([]);
+  const [weeklyReviews, setWeeklyReviews] = useState({});
 
   // Check every 30 seconds if the date has rolled over
   useEffect(() => {
@@ -51,7 +52,7 @@ export default function App() {
       refreshDates();
       setCurrentDate(getToday());
       const SK = getSK();
-      const [c, a, j, p, w, st, ji, hi, ord] = await Promise.all([ld(SK.cl, {}), ld(SK.af, DEFAULT_AFF), ld(SK.jo, ""), ld(SK.wr, {}), ld(SK.wn, ""), ld(SK.st, { count: 0, lastDate: "" }), ld(SK.ji, []), ld(SK.hi, {}), ld(SK.ord, null)]);
+      const [c, a, j, p, w, st, ji, hi, ord, wrvs] = await Promise.all([ld(SK.cl, {}), ld(SK.af, DEFAULT_AFF), ld(SK.jo, ""), ld(SK.wr, {}), ld(SK.wn, ""), ld(SK.st, { count: 0, lastDate: "" }), ld(SK.ji, []), ld(SK.hi, {}), ld(SK.ord, null), ld("weeklyReviews", {})]);
 
       if (!c || !c._date || c._date !== getToday()) {
         setChecked({});
@@ -73,7 +74,7 @@ export default function App() {
         setJournal("");
       }
 
-      setAff(a); setPs(p); setWn(w); setStreak(st); setJoIdx(localJoIdx); setHistory(hi);
+      setAff(a); setPs(p); setWn(w); setStreak(st); setJoIdx(localJoIdx); setHistory(hi); setWeeklyReviews(wrvs);
       if (ord) {
         const validIds = new Set(CL.map(c => c.id));
         const cleaned = ord.filter(id => validIds.has(id));
@@ -107,6 +108,23 @@ export default function App() {
       setStreak(ns); sv(getSK().st, ns);
     }
   };
+
+  const updateHistoryItem = (date, id, isDone) => {
+    const entry = history[date] || { count: 0, total: CL.length, items: [] };
+    let newItems = [...(entry.items || [])];
+    if (isDone) {
+      if (!newItems.includes(id)) newItems.push(id);
+    } else {
+      newItems = newItems.filter(i => i !== id);
+    }
+    const nh = { ...history, [date]: { ...entry, count: newItems.length, total: CL.length, items: newItems } };
+    setHistory(nh); sv(getSK().hi, nh);
+    if (date === getToday()) {
+      const n = { ...checked, [id]: isDone };
+      setChecked(n); saveCl(n);
+    }
+  };
+
   const upPil = (id, score) => { const n = { ...ps, [id]: score }; setPs(n); sv(getSK().wr, n); };
   const saveAf = (nl) => { setAff(nl); sv(getSK().af, nl); };
   const reorder = (newOrder) => { setOrder(newOrder); sv(getSK().ord, newOrder); };
@@ -140,11 +158,11 @@ export default function App() {
         <main style={{ padding: "1.5rem 0 3rem" }}>
           {tab === "guide" && <GuideTab />}
           {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} />}
-          {tab === "tracker" && <TrackerTab history={history} />}
+          {tab === "tracker" && <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />}
           {tab === "deepwork" && <DeepWorkTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}
-          {tab === "coach" && <CoachTab data={{ habits: checked, energy: {}, journal: {}, affirmations: aff, affirmationsDone: false, weeklyReviews: {} }} persist={() => { }} history={history} />}
-          {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} />}
+          {tab === "coach" && <CoachTab data={{ habits: checked, energy: {}, journal: {}, affirmations: aff, affirmationsDone: false, weeklyReviews: weeklyReviews }} persist={() => { }} history={history} />}
+          {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} history={history} weeklyReviews={weeklyReviews} setWeeklyReviews={setWeeklyReviews} aff={aff} />}
         </main>
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>
       </div>
