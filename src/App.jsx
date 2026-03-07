@@ -161,7 +161,19 @@ export default function App() {
           {tab === "tracker" && <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />}
           {tab === "deepwork" && <DeepWorkTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}
-          {tab === "coach" && <CoachTab data={{ habits: checked, energy: {}, journal: {}, affirmations: aff, affirmationsDone: false, weeklyReviews: weeklyReviews }} persist={() => { }} history={history} />}
+          {tab === "coach" && (() => {
+            const coachData = { habits: { [getToday()]: checked }, energy: {}, journal: { [getToday()]: journal }, affirmations: aff, affirmationsDone: { [getToday()]: false }, weeklyReviews: weeklyReviews };
+            try {
+              for (let i = 0; i < localStorage.length; i++) {
+                const k = localStorage.key(i);
+                if (k.startsWith("en:") && k !== "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) coachData.energy[k.replace("en:", "")] = jd.ratings; }
+                if (k === "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) coachData.energy[getToday()] = jd.ratings; }
+                if (k.startsWith("jo:") && k !== "jo:today" && k !== "jo:index") { const jd = JSON.parse(localStorage.getItem(k)); coachData.journal[k.replace("jo:", "")] = typeof jd === "string" ? jd : (jd.text || ""); }
+                if (k === "jo:today") { const jd = JSON.parse(localStorage.getItem(k)); coachData.journal[getToday()] = typeof jd === "string" ? jd : (jd.text || ""); }
+              }
+            } catch (e) { }
+            return <CoachTab data={coachData} persist={(d) => { if (d.affirmations) saveAf(d.affirmations); if (d.habits?.[getToday()]) setChecked(d.habits[getToday()]); }} history={history} />;
+          })()}
           {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} history={history} weeklyReviews={weeklyReviews} setWeeklyReviews={setWeeklyReviews} aff={aff} />}
         </main>
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>

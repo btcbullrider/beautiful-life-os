@@ -13,6 +13,20 @@ export default function CoachTab({ data, persist, history }) {
     const [loading, setLoading] = useState(false);
     const chatEndRef = useRef(null);
     const inputRef = useRef(null);
+    const [historyLoaded, setHistoryLoaded] = useState(false);
+
+    useEffect(() => {
+        ld("coach:history", []).then(saved => {
+            if (saved && saved.length > 0) setMessages(saved);
+            setHistoryLoaded(true);
+        });
+    }, []);
+
+    useEffect(() => {
+        if (historyLoaded) {
+            sv("coach:history", messages);
+        }
+    }, [messages, historyLoaded]);
 
     useEffect(() => {
         chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -73,6 +87,7 @@ You have deep knowledge of all these teachers and their frameworks: Scott Adams 
 Peter is a former wealth advisor building a one-person business helping people navigate the 4th Turning with financial sovereignty (Bitcoin) and resilient business models. Vision: speaking on stages, location-independent mountain town life, family.
 
 You have ALL of Peter's tracker data AND past weekly reviews. Use weekly reviews to track progress over time.
+You have access to the full conversation history from previous sessions. Reference past conversations naturally when relevant.
 
 TIME CONTEXT: Current time is ${new Date().toLocaleTimeString()} (Hour: ${new Date().getHours()}). When assessing 'how am I doing this week', look at the PREVIOUS 7 completed days, NOT including today. Today is still in progress. When assessing today specifically, use the current time to judge fairly: before 12pm only evaluate morning habits, before 6pm evaluate morning + daytime, after 6pm evaluate the full day. Never judge an incomplete day as a failure.
 
@@ -207,6 +222,14 @@ ${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}`;
     return (
         <div style={{ display: "flex", flexDirection: "column", minHeight: "60vh" }}>
             <div style={{ flex: 1, marginBottom: 16 }}>
+
+                {messages.length > 0 && (
+                    <div style={{ textAlign: "right", marginBottom: "1rem" }}>
+                        <button onClick={() => { setMessages([]); sv("coach:history", []); }} style={{ background: "none", border: "none", color: "#6A6A5A", fontSize: "0.7rem", cursor: "pointer", textTransform: "uppercase", letterSpacing: "0.05em", transition: "color 0.2s" }} onMouseOver={(e) => e.target.style.color = "#C8A951"} onMouseOut={(e) => e.target.style.color = "#6A6A5A"}>
+                            Clear conversation
+                        </button>
+                    </div>
+                )}
 
                 {messages.length === 0 && (
                     <div>
