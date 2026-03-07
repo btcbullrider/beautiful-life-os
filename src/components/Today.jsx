@@ -12,6 +12,41 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
   const [energy, setEnergy] = useState({ sleep: 0, diet: 0, exercise_e: 0, focus: 0, mood: 0 });
   const [enIdx, setEnIdx] = useState([]);
 
+  const [pastEntries, setPastEntries] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(7);
+  const [expandedEntries, setExpandedEntries] = useState({});
+
+  useEffect(() => {
+    (async () => {
+      const ji = await ld("jo:index", []);
+      const pastDates = ji.filter(d => d !== TODAY).sort((a, b) => new Date(b) - new Date(a));
+
+      const entries = [];
+      for (const d of pastDates) {
+        const data = await ld(`jo:${d}`, "");
+        const entryText = typeof data === "object" && data !== null ? data.text : data;
+        if (entryText && typeof entryText === "string" && entryText.trim()) {
+          entries.push({ date: d, text: entryText });
+        }
+      }
+      setPastEntries(entries);
+    })();
+  }, []);
+
+  const toggleEntry = (date) => {
+    setExpandedEntries(prev => ({ ...prev, [date]: !prev[date] }));
+  };
+
+  const formatDate = (ds) => {
+    try {
+      const d = new Date(ds + "T12:00:00");
+      return d.toLocaleDateString("en-US", { weekday: "short", month: "short", day: "numeric", year: "numeric" });
+    } catch {
+      return ds;
+    }
+  };
+
+
   useEffect(() => {
     (async () => {
       const [saved, idx] = await Promise.all([ld("en:today", null), ld("en:index", [])]);
@@ -241,6 +276,70 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
       </div>
       <textarea value={jo} onChange={e => onChangeJo(e.target.value)} placeholder="Write freely. Process, pray on paper, notice what's shifting..." rows={8} style={{ width: "100%", background: "#14171E", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 3, color: "#E8E4DC", fontFamily: "inherit", fontSize: "0.88rem", padding: "0.9rem", resize: "vertical", lineHeight: 1.7, outline: "none" }} />
     </div>
+
+    {/* Past Entries */}
+    {pastEntries.length > 0 && (
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.8rem" }}>
+          <span>🕰️</span>
+          <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>Past Entries</span>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+          {pastEntries.slice(0, visibleCount).map(({ date, text }) => {
+            const isExpanded = expandedEntries[date];
+            return (
+              <div
+                key={date}
+                onClick={() => toggleEntry(date)}
+                style={{
+                  background: "#14171E",
+                  padding: "1rem",
+                  borderRadius: 4,
+                  border: "1px solid rgba(255,255,255,0.04)",
+                  cursor: "pointer",
+                  transition: "all 0.2s"
+                }}
+              >
+                <div style={{ fontSize: "0.75rem", color: "#C8A951", marginBottom: "0.5rem", opacity: 0.8 }}>{formatDate(date)}</div>
+                <div style={{
+                  fontSize: "0.85rem",
+                  color: "#E8E4DC",
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-wrap",
+                  display: isExpanded ? "block" : "-webkit-box",
+                  WebkitLineClamp: isExpanded ? "none" : 3,
+                  WebkitBoxOrient: "vertical",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis"
+                }}>
+                  {text}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        {visibleCount < pastEntries.length && (
+          <button
+            onClick={() => setVisibleCount(v => v + 7)}
+            style={{
+              marginTop: "1rem",
+              width: "100%",
+              padding: "0.7rem",
+              background: "rgba(200,169,81,0.04)",
+              border: "1px solid rgba(200,169,81,0.15)",
+              borderRadius: 4,
+              color: "#C8A951",
+              fontSize: "0.8rem",
+              cursor: "pointer",
+              fontFamily: "inherit",
+              transition: "background 0.2s"
+            }}
+          >
+            Show more
+          </button>
+        )}
+      </div>
+    )}
 
     <DailyDevotional />
   </div>);
