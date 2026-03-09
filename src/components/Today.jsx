@@ -3,7 +3,7 @@ import { CL } from "../utils/constants";
 import DailyDevotional from "./DailyDevotional";
 import { ld, sv, TODAY } from "../utils/storage";
 
-export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo, onChangeJo }) {
+export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo, onChangeJo, removedHabits }) {
   const [expanded, setExpanded] = useState(null);
   const [dragId, setDragId] = useState(null);
   const [overId, setOverId] = useState(null);
@@ -77,9 +77,11 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
   // Build ordered items per category
   const getItemsForCat = (catKey) => {
     return order
+      .filter(o => CL.find(c => c.id === o.id))
       .filter(o => o.cat === catKey)
       .map(o => CL.find(c => c.id === o.id))
-      .filter(Boolean);
+      .filter(Boolean)
+      .filter(c => !removedHabits?.includes(c.id));
   };
 
   const onDragStart = (e, id) => {

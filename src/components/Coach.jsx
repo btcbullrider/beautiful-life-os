@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { CL, PIL, DEFAULT_AFF } from "../utils/constants";
+import { CL, DEFAULT_AFF } from "../utils/constants";
 import { ld, sv, TODAY } from "../utils/storage";
 
 // Coach needs these props from App.jsx:
@@ -136,6 +136,12 @@ ${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}`;
                 break;
             case "replace_affirmation":
                 d.affirmations = (d.affirmations || DEFAULT_AFF).map(a => a === action.section ? action.payload : a);
+                break;
+            case "add_habit":
+                d.customHabits = [...(d.customHabits || []), { id: action.section, label: action.payload }];
+                break;
+            case "remove_habit":
+                d.removedHabits = [...(d.removedHabits || []), action.section];
                 break;
             default:
                 break;

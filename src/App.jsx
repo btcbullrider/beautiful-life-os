@@ -21,6 +21,7 @@ export default function App() {
   const [wn, setWn] = useState("");
   const [streak, setStreak] = useState({ count: 0, lastDate: "" });
   const [history, setHistory] = useState({});
+  const [removedHabits, setRemovedHabits] = useState([]);
   const [order, setOrder] = useState(CL.map(c => ({ id: c.id, cat: c.cat })));
   const [currentDate, setCurrentDate] = useState(TODAY);
   const [joIdx, setJoIdx] = useState([]);
@@ -75,6 +76,8 @@ export default function App() {
       }
 
       setAff(a); setPs(p); setWn(w); setStreak(st); setJoIdx(localJoIdx); setHistory(hi); setWeeklyReviews(wrvs);
+      const rmHabits = await ld("removed_habits", []);
+      setRemovedHabits(rmHabits);
       if (ord) {
         const validIds = new Set(CL.map(c => c.id));
         let cleaned = [];
@@ -164,7 +167,7 @@ export default function App() {
         </nav>
         <main style={{ padding: "1.5rem 0 3rem" }}>
           {tab === "guide" && <GuideTab />}
-          {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} />}
+          {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} removedHabits={removedHabits} />}
           {tab === "tracker" && <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />}
           {tab === "deepwork" && <DeepWorkTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}
@@ -179,7 +182,7 @@ export default function App() {
                 if (k === "jo:today") { const jd = JSON.parse(localStorage.getItem(k)); coachData.journal[getToday()] = typeof jd === "string" ? jd : (jd.text || ""); }
               }
             } catch (e) { }
-            return <CoachTab data={coachData} persist={(d) => { if (d.affirmations) saveAf(d.affirmations); if (d.habits?.[getToday()]) setChecked(d.habits[getToday()]); }} history={history} />;
+            return <CoachTab data={{ ...coachData, removedHabits }} persist={(d) => { if (d.affirmations) saveAf(d.affirmations); if (d.habits?.[getToday()]) setChecked(d.habits[getToday()]); if (d.removedHabits) { setRemovedHabits(d.removedHabits); sv("removed_habits", d.removedHabits); } }} history={history} />;
           })()}
           {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} history={history} weeklyReviews={weeklyReviews} setWeeklyReviews={setWeeklyReviews} aff={aff} />}
         </main>
