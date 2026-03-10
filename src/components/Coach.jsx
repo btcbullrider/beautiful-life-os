@@ -15,6 +15,13 @@ export default function CoachTab({ data, persist, history }) {
     const chatEndRef = useRef(null);
     const inputRef = useRef(null);
     const [historyLoaded, setHistoryLoaded] = useState(false);
+    const [bullStandardData, setBullStandardData] = useState({});
+
+    useEffect(() => {
+        ld("bullstandard:live", {}).then(saved => {
+            if (saved) setBullStandardData(saved);
+        });
+    }, []);
 
     useEffect(() => {
         ld("coach:history", []).then(saved => {
