@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { CL, DEFAULT_AFF } from "../utils/constants";
 import { ld, sv, TODAY } from "../utils/storage";
+import strategy from "../strategy";
 
 // Coach needs these props from App.jsx:
 // - data: the main app state object (habits, energy, journal, affirmations, etc.)
@@ -112,7 +113,9 @@ AFFIRMATIONS: ${affs.join(" | ")}
 7-DAY ENERGY: ${last7e.join(" | ")}
 JOURNALS: ${journals.join("\n") || "None"}
 === WEEKLY REVIEWS ===
-${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}`;
+${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}
+=== BULL STANDARD BUSINESS CONTEXT ===
+${JSON.stringify(strategy, null, 2)}`;
     };
 
     const parseActions = (text) => {
