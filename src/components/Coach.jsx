@@ -115,10 +115,10 @@ JOURNALS: ${journals.join("\n") || "None"}
 === WEEKLY REVIEWS ===
 ${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}
 === BULL STANDARD BUSINESS CONTEXT (STATIC) ===
-${JSON.stringify(strategy, null, 2)}
+${JSON.stringify(strategy)}
 
 === BULL STANDARD LIVE STATE (DYNAMIC — updated by Peter in real time) ===
-${JSON.stringify(bullStandardData, null, 2)}
+${JSON.stringify(bullStandardData)}
 
 IMPORTANT COACH INSTRUCTIONS FOR BULL STANDARD UPDATES:
 - When Peter tells you something changed in his business (ABTC status, brief pipeline, X streak, revenue), use the ACTION system to record it immediately.
@@ -241,7 +241,7 @@ NOTES: [patterns Coach has noticed worth flagging to Claude]
         } catch (e) {
             setMessages(prev => [...prev, {
                 role: "assistant",
-                content: "Couldn't reach the coach. Check your API key in Vercel environment variables.",
+                content: "Coach error: " + (e?.message || JSON.stringify(e) || "Unknown error. Check API key and Vercel function logs."),
             }]);
         }
         setLoading(false);
