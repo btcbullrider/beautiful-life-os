@@ -114,12 +114,37 @@ AFFIRMATIONS: ${affs.join(" | ")}
 JOURNALS: ${journals.join("\n") || "None"}
 === WEEKLY REVIEWS ===
 ${pastReviews.length > 0 ? pastReviews.join("\n\n") : "No reviews yet."}
-=== BULL STANDARD BUSINESS CONTEXT ===
-${JSON.stringify(strategy, null, 2)}`;
+=== BULL STANDARD BUSINESS CONTEXT (STATIC) ===
+${JSON.stringify(strategy, null, 2)}
+
+=== BULL STANDARD LIVE STATE (DYNAMIC — updated by Peter in real time) ===
+${JSON.stringify(bullStandardData, null, 2)}
+
+IMPORTANT COACH INSTRUCTIONS FOR BULL STANDARD UPDATES:
+- When Peter tells you something changed in his business (ABTC status, brief pipeline, X streak, revenue), use the ACTION system to record it immediately.
+- update_strategy: use for named field updates. Format: {{ACTION:update_strategy:fieldName:value}}. Examples: {{ACTION:update_strategy:abtcStatus:Proposal sent to Michele on March 12}} or {{ACTION:update_strategy:xStreak:6}}
+- log_bullstandard: use to log any significant business event with context. Format: {{ACTION:log_bullstandard::Brief description of what happened}}
+- set_next_action: use to set the single most important next BULL STANDARD move. Format: {{ACTION:set_next_action::Description of the next action}}
+- When Peter says "generate my Claude strategy briefing", output this exact block:
+
+=== BULL STANDARD STRATEGY BRIEFING ===
+Date: [today's date]
+Energy this week: [7-day average from tracker data]
+Habit completion this week: [7-day average]
+Deep Work 2 completion rate: [from tracker]
+
+ABTC STATUS: [from live state or static strategy]
+BRIEF PIPELINE: Published: [x] | In Progress: [x] | Not Started: [x]
+X STREAK: [from live state]
+NEXT ACTION: [from live state]
+CURRENT BLOCKER: [what Coach has observed is stopping forward motion]
+RECENT ACTIVITY: [last 3 entries from activityLog]
+NOTES: [patterns Coach has noticed worth flagging to Claude]
+=== END BRIEFING ===`;
     };
 
     const parseActions = (text) => {
-        const rx = /\{\{ACTION:(add_habit|remove_habit|add_affirmation|remove_affirmation|replace_affirmation):([^:]*):([^}]*)\}\}/g;
+        const rx = /\{\{ACTION:(add_habit|remove_habit|add_affirmation|remove_affirmation|replace_affirmation|update_strategy|log_bullstandard|set_next_action):([^:]*):([^}]*)\}\}/g;
         const actions = [];
         let m;
         while ((m = rx.exec(text)) !== null) {
@@ -146,6 +171,31 @@ ${JSON.stringify(strategy, null, 2)}`;
             case "remove_habit":
                 d.removedHabits = [...(d.removedHabits || []), action.section];
                 break;
+            case "update_strategy": {
+                const updated = { ...bullStandardData };
+                updated[action.section] = action.payload;
+                updated._lastUpdated = new Date().toISOString();
+                setBullStandardData(updated);
+                sv("bullstandard:live", updated);
+                break;
+            }
+            case "log_bullstandard": {
+                const updated = { ...bullStandardData };
+                const log = updated.activityLog || [];
+                log.unshift({ date: new Date().toISOString(), entry: action.payload });
+                updated.activityLog = log.slice(0, 50);
+                setBullStandardData(updated);
+                sv("bullstandard:live", updated);
+                break;
+            }
+            case "set_next_action": {
+                const updated = { ...bullStandardData };
+                updated.nextAction = action.payload;
+                updated._lastUpdated = new Date().toISOString();
+                setBullStandardData(updated);
+                sv("bullstandard:live", updated);
+                break;
+            }
             default:
                 break;
         }
@@ -210,11 +260,17 @@ ${JSON.stringify(strategy, null, 2)}`;
         add_habit: "Add Habit", remove_habit: "Remove Habit",
         add_affirmation: "Add Affirmation", remove_affirmation: "Remove Affirmation",
         replace_affirmation: "Update Affirmation",
+        update_strategy: "Update Strategy",
+        log_bullstandard: "Log Activity",
+        set_next_action: "Set Next Action",
     };
     const actionColors = {
         add_habit: "#7AB896", remove_habit: "#C87A92",
         add_affirmation: "#B088D0", remove_affirmation: "#C87A92",
         replace_affirmation: "#6A9FD8",
+        update_strategy: "#F59E0B",
+        log_bullstandard: "#6A9FD8",
+        set_next_action: "#7AB896",
     };
 
     const renderText = (text) => text.split("\n").map((line, i) => {
