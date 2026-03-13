@@ -15,6 +15,7 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
   const [pastEntries, setPastEntries] = useState([]);
   const [visibleCount, setVisibleCount] = useState(7);
   const [expandedEntries, setExpandedEntries] = useState({});
+  const [showPastEntries, setShowPastEntries] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -314,63 +315,74 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
     {/* Past Entries */}
     {pastEntries.length > 0 && (
       <div style={{ marginBottom: "2rem" }}>
-        <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.8rem" }}>
-          <span>🕰️</span>
-          <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>Past Entries</span>
+        <div 
+          onClick={() => setShowPastEntries(!showPastEntries)} 
+          style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: showPastEntries ? "1rem" : 0, cursor: "pointer" }}
+        >
+          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
+            <span>🕰️</span>
+            <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>Past Entries</span>
+          </div>
+          <span style={{ color: "#8A8678", fontSize: "0.68rem" }}>{showPastEntries ? "▲" : "▼"}</span>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
-          {pastEntries.slice(0, visibleCount).map(({ date, text }) => {
-            const isExpanded = expandedEntries[date];
-            return (
-              <div
-                key={date}
-                onClick={() => toggleEntry(date)}
+        
+        {showPastEntries && (
+          <>
+            <div style={{ display: "flex", flexDirection: "column", gap: "0.8rem" }}>
+              {pastEntries.slice(0, visibleCount).map(({ date, text }) => {
+                const isExpanded = expandedEntries[date];
+                return (
+                  <div
+                    key={date}
+                    onClick={() => toggleEntry(date)}
+                    style={{
+                      background: "#14171E",
+                      padding: "1rem",
+                      borderRadius: 4,
+                      border: "1px solid rgba(255,255,255,0.04)",
+                      cursor: "pointer",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    <div style={{ fontSize: "0.75rem", color: "#C8A951", marginBottom: "0.5rem", opacity: 0.8 }}>{formatDate(date)}</div>
+                    <div style={{
+                      fontSize: "0.85rem",
+                      color: "#E8E4DC",
+                      lineHeight: 1.6,
+                      whiteSpace: "pre-wrap",
+                      display: isExpanded ? "block" : "-webkit-box",
+                      WebkitLineClamp: isExpanded ? "none" : 3,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      textOverflow: "ellipsis"
+                    }}>
+                      {text}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+            {visibleCount < pastEntries.length && (
+              <button
+                onClick={() => setVisibleCount(v => v + 7)}
                 style={{
-                  background: "#14171E",
-                  padding: "1rem",
+                  marginTop: "1rem",
+                  width: "100%",
+                  padding: "0.7rem",
+                  background: "rgba(200,169,81,0.04)",
+                  border: "1px solid rgba(200,169,81,0.15)",
                   borderRadius: 4,
-                  border: "1px solid rgba(255,255,255,0.04)",
+                  color: "#C8A951",
+                  fontSize: "0.8rem",
                   cursor: "pointer",
-                  transition: "all 0.2s"
+                  fontFamily: "inherit",
+                  transition: "background 0.2s"
                 }}
               >
-                <div style={{ fontSize: "0.75rem", color: "#C8A951", marginBottom: "0.5rem", opacity: 0.8 }}>{formatDate(date)}</div>
-                <div style={{
-                  fontSize: "0.85rem",
-                  color: "#E8E4DC",
-                  lineHeight: 1.6,
-                  whiteSpace: "pre-wrap",
-                  display: isExpanded ? "block" : "-webkit-box",
-                  WebkitLineClamp: isExpanded ? "none" : 3,
-                  WebkitBoxOrient: "vertical",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis"
-                }}>
-                  {text}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-        {visibleCount < pastEntries.length && (
-          <button
-            onClick={() => setVisibleCount(v => v + 7)}
-            style={{
-              marginTop: "1rem",
-              width: "100%",
-              padding: "0.7rem",
-              background: "rgba(200,169,81,0.04)",
-              border: "1px solid rgba(200,169,81,0.15)",
-              borderRadius: 4,
-              color: "#C8A951",
-              fontSize: "0.8rem",
-              cursor: "pointer",
-              fontFamily: "inherit",
-              transition: "background 0.2s"
-            }}
-          >
-            Show more
-          </button>
+                Show more
+              </button>
+            )}
+          </>
         )}
       </div>
     )}
