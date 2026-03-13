@@ -13,6 +13,7 @@ import LevelUpModal from "./components/gamification/LevelUpModal";
 import BadgeGallery from "./components/gamification/BadgeGallery";
 import AttributesWeb from "./components/gamification/AttributesWeb";
 import { awardXP, getLevelFromXP, getLevelProgress, getNextLevel } from "./utils/xpEngine";
+import HabitAnimations from "./components/gamification/HabitAnimations";
 
 export default function App() {
   const [gamification, setGamification] = useState(() => {
@@ -21,6 +22,16 @@ export default function App() {
   });
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpData, setLevelUpData] = useState(null);
+  const [animTrigger, setAnimTrigger] = useState(null);
+  const [comboCount, setComboCount] = useState(0);
+  const [comboTimestamps, setComboTimestamps] = useState([]);
+
+  const recordCombo = () => {
+    const now = Date.now();
+    const recent = [...comboTimestamps, now].filter(t => now - t < 60000);
+    setComboTimestamps(recent);
+    setComboCount(recent.length);
+  };
 
   const saveGamification = (newState) => {
     setGamification(newState);
@@ -128,6 +139,8 @@ export default function App() {
     if (isNowChecked) {
       const habitDef = CL.find(h => h.id === id);
       if (habitDef) {
+        setAnimTrigger({ id: Date.now(), xp: habitDef.xp || 0, pillar: habitDef.pillar, habitLabel: habitDef.label });
+        recordCombo();
         const { newState, leveledUp, newLevelData } = awardXP(gamification, habitDef);
         saveGamification(newState);
         if (leveledUp) {
@@ -174,6 +187,10 @@ export default function App() {
 
   // Derive current streak from history (any activity = streak day)
   const derivedStreak = calcCurrentStreak(history);
+
+  const todayKey = new Date().toISOString().split("T")[0];
+  const todayHabits = checked;
+  const isPerfectDay = CL.length > 0 && CL.every(h => todayHabits[h.id]);
 
   if (!loaded) return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0D0F14", gap: "1rem" }}><div style={{ fontSize: "2rem", color: "#C8A951" }}>✦</div><div style={{ color: "#8A8678", fontSize: "0.85rem" }}>Loading...</div></div>;
 
@@ -239,6 +256,7 @@ export default function App() {
         </main>
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>
       </div>
+      <HabitAnimations trigger={animTrigger} comboCount={comboCount} isPerfectDay={isPerfectDay} />
       <LevelUpModal show={showLevelUp} levelData={levelUpData} onDismiss={() => setShowLevelUp(false)} />
     </div>
   );
