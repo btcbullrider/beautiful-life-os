@@ -9,8 +9,24 @@ import DeepWorkTab from "./components/DeepWork";
 import AffTab from "./components/Affirmations";
 import CoachTab from "./components/Coach";
 import ReviewTab from "./components/Review";
+import LevelUpModal from "./components/gamification/LevelUpModal";
+import BadgeGallery from "./components/gamification/BadgeGallery";
+import AttributesWeb from "./components/gamification/AttributesWeb";
+import { awardXP, getLevelFromXP, getLevelProgress, getNextLevel } from "./utils/xpEngine";
 
 export default function App() {
+  const [gamification, setGamification] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] }; }
+    catch { return { totalXP: 0, perPillar: {}, unlockedBadges: [] }; }
+  });
+  const [showLevelUp, setShowLevelUp] = useState(false);
+  const [levelUpData, setLevelUpData] = useState(null);
+
+  const saveGamification = (newState) => {
+    setGamification(newState);
+    localStorage.setItem("blos-gamification", JSON.stringify(newState));
+  };
+
   const [tab, setTab] = useState("guide");
   const [loaded, setLoaded] = useState(false);
   const [checked, setChecked] = useState({});
@@ -106,7 +122,21 @@ export default function App() {
   const saveWn = deb((t) => sv(getSK().wn, t), 500);
 
   const tog = (id) => {
-    const n = { ...checked, [id]: !checked[id] }; setChecked(n); saveCl(n);
+    const isNowChecked = !checked[id];
+    const n = { ...checked, [id]: isNowChecked }; setChecked(n); saveCl(n);
+    
+    if (isNowChecked) {
+      const habitDef = CL.find(h => h.id === id);
+      if (habitDef) {
+        const { newState, leveledUp, newLevelData } = awardXP(gamification, habitDef);
+        saveGamification(newState);
+        if (leveledUp) {
+          setLevelUpData(newLevelData);
+          setShowLevelUp(true);
+        }
+      }
+    }
+
     const done = Object.entries(n).filter(([k, v]) => v && k !== "_date" && CL.find(c => c.id === k)).map(([k]) => k);
     const nh = { ...history, [getToday()]: { count: done.length, total: CL.length, items: done } };
     setHistory(nh); sv(getSK().hi, nh);
@@ -162,13 +192,34 @@ export default function App() {
             <span style={{ fontSize: "0.55rem", letterSpacing: "0.12em", textTransform: "uppercase", color: "#8A8678" }}>day streak</span>
           </div>
         </header>
+        <div style={{ width: "100%", marginBottom: 0 }}>
+          <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", width: "100%" }}>
+            <div style={{
+              height: "100%",
+              width: `${getLevelProgress(gamification.totalXP)}%`,
+              background: "linear-gradient(90deg, #C8A951, #E8D5A0)",
+              transition: "width 0.6s ease",
+              boxShadow: "0 0 6px rgba(200,169,81,0.4)"
+            }} />
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0 6px", fontSize: "10px", color: "#8A8678" }}>
+            <span>Level {getLevelFromXP(gamification.totalXP).level} · {getLevelFromXP(gamification.totalXP).title}</span>
+            <span>{getNextLevel(gamification.totalXP) ? `${getNextLevel(gamification.totalXP).xpRequired - gamification.totalXP} XP to next` : "Max Level"}</span>
+          </div>
+        </div>
         <nav style={{ display: "flex", paddingTop: "0.8rem", borderBottom: "1px solid rgba(200,169,81,0.08)", overflowX: "auto" }}>
           {tabs.map(t => <button key={t.k} onClick={() => setTab(t.k)} style={{ flex: 1, background: "none", border: "none", borderBottom: tab === t.k ? "2px solid #C8A951" : "2px solid transparent", color: tab === t.k ? "#E8E4DC" : "#6A6A5A", fontSize: "0.78rem", padding: "0.7rem 0.3rem", cursor: "pointer", fontFamily: "inherit", whiteSpace: "nowrap" }}>{t.l}</button>)}
         </nav>
         <main style={{ padding: "1.5rem 0 3rem" }}>
           {tab === "guide" && <GuideTab />}
           {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} removedHabits={removedHabits} />}
-          {tab === "tracker" && <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />}
+          {tab === "tracker" && (
+            <>
+              <BadgeGallery unlockedBadges={gamification.unlockedBadges} perPillar={gamification.perPillar} />
+              <AttributesWeb perPillar={gamification.perPillar} />
+              <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />
+            </>
+          )}
           {tab === "deepwork" && <DeepWorkTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}
           {tab === "coach" && (() => {
@@ -188,6 +239,7 @@ export default function App() {
         </main>
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>
       </div>
+      <LevelUpModal show={showLevelUp} levelData={levelUpData} onDismiss={() => setShowLevelUp(false)} />
     </div>
   );
 }
