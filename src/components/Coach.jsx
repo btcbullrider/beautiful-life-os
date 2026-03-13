@@ -67,7 +67,9 @@ export default function CoachTab({ data, persist, history }) {
             const k = d.toISOString().split("T")[0];
             const de = data.energy?.[k] || {};
             const vals = energyKeys.map(e => de[e] || 0).filter(v => v > 0);
-            return k + ": " + (vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : "no data") + "/5";
+            const avg = vals.length > 0 ? (vals.reduce((a, b) => a + b, 0) / vals.length).toFixed(1) : "no data";
+            const summary = energyKeys.map(e => de[e + "_note"] ? `[${energyLabels[e]}: ${de[e + "_note"]}]` : "").filter(Boolean).join(" ");
+            return k + ": " + avg + "/5" + (summary ? ` ${summary}` : "");
         });
 
         // Recent journals
@@ -113,7 +115,11 @@ Keep responses concise (2-4 short paragraphs). Coach, not lecturer. Ask question
 === CURRENT OS ===
 TODAY (${tk}): ${clLabels}
 Completion: ${doneCount}/${CL.length}
-Energy: ${energyKeys.map(e => energyLabels[e] + ": " + (energy[e] || "unrated") + "/5").join(" | ")}
+Energy: ${energyKeys.map(e => {
+    const score = energy[e] || "unrated";
+    const noteStr = energy[e + "_note"] ? ` — ${energy[e + "_note"]}` : "";
+    return `${energyLabels[e]}: ${score}/5${noteStr}`;
+}).join(" | ")}
 Affirmations: ${affsDone ? "Written" : "Not written"} | Journal: ${journal || "none"}
 AFFIRMATIONS: ${affs.join(" | ")}
 7-DAY HABITS: ${last7h.join(" | ")}
