@@ -65,8 +65,44 @@ export default function TrackerTab({ history, updateHistoryItem }) {
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
+  // Compute Weekly Workout count
+  const getMonday = (d) => {
+    const d2 = new Date(d);
+    d2.setHours(0, 0, 0, 0);
+    const day = d2.getDay();
+    const diff = d2.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(d2.setDate(diff));
+  };
+  const currentMonday = getMonday(today);
+  let workoutCount = 0;
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(currentMonday);
+    d.setDate(d.getDate() + i);
+    const dateKey = d.toISOString().slice(0, 10);
+    if (history[dateKey]?.items?.includes("exercise")) {
+      workoutCount++;
+    }
+  }
+
   return (
     <div>
+      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+          <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>MOVEMENT THIS WEEK</span>
+          <span style={{ fontSize: "10px", color: "#C8A951" }}>{workoutCount} / 7</span>
+        </div>
+        <div style={{ fontSize: "9px", color: "#8A8678", marginBottom: "1rem" }}>
+          Base 4 · Bull 5
+        </div>
+        <div style={{ position: "relative", width: "100%", height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: "3px", width: `${(workoutCount / 7) * 100}%`, background: workoutCount < 4 ? "rgba(200,169,81,0.4)" : workoutCount < 5 ? "#5A8A6A" : "#C8A951", transition: "width 0.4s ease" }} />
+          <div style={{ position: "absolute", top: 0, left: `${(4/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
+          <div style={{ position: "absolute", top: 0, left: `${(5/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
+        </div>
+        <div style={{ marginTop: "0.8rem", fontSize: "11px", color: workoutCount < 4 ? "#8A8678" : workoutCount === 4 ? "#5A8A6A" : "#C8A951" }}>
+          {workoutCount < 4 ? `Keep pushing — ${4 - workoutCount} more to hit base` : workoutCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
+        </div>
+      </div>
       <Awards
         currentAward={currentAward}
         nextAward={nextAward}
