@@ -15,7 +15,7 @@ import Awards from "./tracker/Awards";
 import EditDayModal from "./tracker/EditDayModal";
 import StatsRow from "./tracker/StatsRow";
 
-export default function TrackerTab({ history, updateHistoryItem }) {
+export default function TrackerTab({ history, updateHistoryItem, data, persist, gamification, saveGamification }) {
   const [editingDate, setEditingDate] = useState(null);
   const [viewingPractice, setViewingPractice] = useState(null);
 
@@ -84,6 +84,32 @@ export default function TrackerTab({ history, updateHistoryItem }) {
     }
   }
 
+  // Sabbath logic
+  const sabbathWeekKey = `${currentMonday.getFullYear()}-${String(currentMonday.getMonth() + 1).padStart(2, "0")}-${String(currentMonday.getDate()).padStart(2, "0")}`;
+  const sabbathData = data?.sabbath || {};
+  const isSabbathObserved = !!sabbathData[sabbathWeekKey];
+  const totalObservedWeeks = Object.values(sabbathData).filter(v => v === true).length;
+
+  const toggleSabbath = () => {
+    if (!data || !persist) return;
+    const newState = !isSabbathObserved;
+    persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState } });
+    
+    if (newState) {
+      const newTotal = totalObservedWeeks + 1;
+      if (gamification && saveGamification) {
+        if (newTotal >= 4 && !gamification.unlockedBadges?.includes("Sabbath")) {
+          saveGamification({
+            ...gamification,
+            unlockedBadges: [...(gamification.unlockedBadges || []), "Sabbath"]
+          });
+        }
+      } else {
+        // TODO: Badge "Sabbath" logic is skipped as gamification and saveGamification are not available
+      }
+    }
+  };
+
   return (
     <div>
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
@@ -103,6 +129,35 @@ export default function TrackerTab({ history, updateHistoryItem }) {
           {workoutCount < 4 ? `Keep pushing — ${4 - workoutCount} more to hit base` : workoutCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
         </div>
       </div>
+
+      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
+        <div style={{ marginBottom: "0.8rem" }}>
+          <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>SABBATH THIS WEEK</span>
+        </div>
+        <button
+          onClick={toggleSabbath}
+          style={{
+            width: "100%",
+            borderRadius: 6,
+            padding: "0.7rem",
+            cursor: "pointer",
+            transition: "0.2s",
+            background: isSabbathObserved ? "rgba(200,169,81,0.08)" : "rgba(255,255,255,0.02)",
+            border: isSabbathObserved ? "1px solid rgba(200,169,81,0.3)" : "1px solid rgba(255,255,255,0.06)",
+            color: isSabbathObserved ? "#C8A951" : "#8A8678",
+            fontSize: "0.85rem",
+            fontFamily: "inherit",
+            display: "block",
+            textAlign: "center"
+          }}
+        >
+          {isSabbathObserved ? "🕊️ Rest day observed" : "Did you observe a rest day?"}
+        </button>
+        <div style={{ marginTop: "0.8rem", fontSize: "9px", color: "#8A8678" }}>
+          {totalObservedWeeks} weeks of Sabbath kept
+        </div>
+      </div>
+
       <Awards
         currentAward={currentAward}
         nextAward={nextAward}
