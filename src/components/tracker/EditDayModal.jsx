@@ -24,7 +24,17 @@ export default function EditDayModal({ editingDate, setEditingDate, history, upd
                         return (
                             <div
                                 key={c.id}
-                                onClick={() => updateHistoryItem(editingDate, c.id, !isChecked)}
+                                onClick={() => {
+                                    updateHistoryItem(editingDate, c.id, !isChecked);
+                                    
+                                    // Synchronize directly with the daily cl key to ensure "exercise" and all others explicitly record
+                                    const clKey = `cl:${editingDate}`;
+                                    try {
+                                        const storedDay = JSON.parse(localStorage.getItem(clKey)) || { _date: editingDate };
+                                        storedDay[c.id] = !isChecked;
+                                        localStorage.setItem(clKey, JSON.stringify(storedDay));
+                                    } catch (e) {}
+                                }}
                                 style={{
                                     display: "flex", alignItems: "center", gap: "1rem", padding: "0.8rem",
                                     background: isChecked ? "rgba(200,169,81,0.1)" : "rgba(255,255,255,0.02)",
