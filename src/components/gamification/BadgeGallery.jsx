@@ -7,7 +7,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
       <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
         PILLAR BADGES
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "6px", width: "100%", paddingBottom: "8px" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", width: "100%", paddingBottom: "8px" }}>
         {PILLAR_BADGES.map(badgeData => {
           const isUnlocked = unlockedBadges.includes(badgeData.pillar);
           const xp = perPillar[badgeData.pillar] || 0;
@@ -17,16 +17,17 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
             <div key={badgeData.pillar} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div 
                 style={{
-                  width: "100%",
-                  minWidth: 0,
-                  overflow: "hidden",
+                  flex: "1 1 calc(14.28% - 8px)",
+                  minWidth: "80px",
+                  maxWidth: "140px",
                   borderRadius: "8px",
-                  padding: "6px",
+                  padding: "10px 6px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: "4px",
                   textAlign: "center",
+                  boxSizing: "border-box",
                   ...(isUnlocked ? {
                     background: "rgba(200, 169, 81, 0.08)",
                     border: "1px solid rgba(200, 169, 81, 0.3)"
@@ -38,7 +39,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
               >
                 <div 
                   style={{
-                    fontSize: "1.4rem",
+                    fontSize: "1.6rem",
                     ...(isUnlocked ? { opacity: 1 } : { opacity: 0.2, color: "white" })
                   }}
                 >
@@ -46,7 +47,8 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
                 </div>
                 <div 
                   style={{
-                    fontSize: "7px",
+                    fontSize: "8px",
+                    lineHeight: 1.3,
                     color: isUnlocked ? "#C8A951" : "#4A4A4A",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -58,7 +60,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
                   {isUnlocked ? badgeData.badge : "???"}
                 </div>
                 <div style={{ 
-                  fontSize: "6px", 
+                  fontSize: "7px", 
                   color: "#8A8678",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
