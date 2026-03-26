@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { CL } from "../utils/constants";
 import DailyDevotional from "./DailyDevotional";
 import { ld, sv, TODAY } from "../utils/storage";
+import HabitGroup from "./today/HabitGroup";
+import EnergyCheck from "./today/EnergyCheck";
 
 export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo, onChangeJo, removedHabits }) {
   const [expanded, setExpanded] = useState(null);
@@ -164,52 +166,6 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
   };
   const onDragEnd = () => { setDragId(null); setOverId(null); setOverCat(null); };
 
-  const renderItem = (item) => {
-    const isExp = expanded === item.id;
-    const isDragging = dragId === item.id;
-    const isOver = overId === item.id && dragId !== item.id;
-    return (
-      <div
-        key={item.id}
-        draggable
-        onDragStart={e => onDragStart(e, item.id)}
-        onDragOver={e => onDragOverItem(e, item.id)}
-        onDrop={e => onDropOnItem(e, item.id)}
-        onDragEnd={onDragEnd}
-        style={{
-          marginBottom: "0.35rem",
-          opacity: isDragging ? 0.3 : 1,
-          transition: "opacity 0.15s",
-        }}
-      >
-        {isOver && <div style={{ height: 2, background: "#C8A951", borderRadius: 1, marginBottom: 4, opacity: 0.6 }} />}
-        <div style={{
-          display: "flex", alignItems: "center", gap: "0.6rem", width: "100%",
-          background: ck[item.id] ? "rgba(90,138,106,0.06)" : "#14171E",
-          border: `1px solid ${ck[item.id] ? "rgba(90,138,106,0.15)" : "rgba(200,169,81,0.08)"}`,
-          borderRadius: isExp ? "3px 3px 0 0" : 3,
-          padding: "0.85rem 0.8rem",
-          fontFamily: "inherit", textAlign: "left", color: "#E8E4DC"
-        }}>
-          <div style={{ cursor: "grab", color: "#4A4A3A", fontSize: "0.85rem", padding: "0 0.15rem", userSelect: "none", flexShrink: 0, display: "flex", alignItems: "center" }}>⋮⋮</div>
-          <div onClick={() => tog(item.id)} style={{ width: 20, height: 20, borderRadius: 3, border: `1.5px solid ${ck[item.id] ? "#5A8A6A" : "rgba(200,169,81,0.25)"}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.75rem", color: "#5A8A6A", background: ck[item.id] ? "rgba(90,138,106,0.2)" : "none", flexShrink: 0, cursor: "pointer" }}>{ck[item.id] && "✓"}</div>
-          <span onClick={() => tog(item.id)} style={{ fontSize: "1rem", cursor: "pointer" }}>{item.emoji}</span>
-          <span onClick={() => tog(item.id)} style={{ fontSize: "0.86rem", flex: 1, opacity: ck[item.id] ? 0.5 : 1, textDecoration: ck[item.id] ? "line-through" : "none", cursor: "pointer" }}>{item.label}</span>
-          <button onClick={(e) => { e.stopPropagation(); setExpanded(isExp ? null : item.id); }} style={{ background: "none", border: "none", color: "#6A6A5A", fontSize: "0.65rem", cursor: "pointer", fontFamily: "inherit", padding: "0.2rem 0.4rem", borderRadius: 2, letterSpacing: "0.05em", opacity: 0.7 }}>
-            {isExp ? "hide" : "what's this?"}
-          </button>
-        </div>
-        {isExp && (
-          <div style={{
-            background: "rgba(200,169,81,0.03)", border: "1px solid rgba(200,169,81,0.08)", borderTop: "none",
-            borderRadius: "0 0 3px 3px", padding: "0.9rem 1rem 0.9rem 3.8rem",
-            fontSize: "0.78rem", color: "#8A8678", lineHeight: 1.65
-          }}>{item.desc}</div>
-        )}
-      </div>
-    );
-  };
-
   return (<div>
     <div style={{ marginBottom: "2rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
@@ -222,86 +178,37 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
       {prog === 100 && <div style={{ textAlign: "center", color: "#C8A951", fontSize: "0.8rem", marginTop: "0.8rem", fontStyle: "italic" }}>✦ All practices complete. Well done, faithful servant.</div>}
     </div>
 
-    {cats.map(cat => {
-      const items = getItemsForCat(cat.k);
-      const isCatOver = overCat === cat.k && !overId;
-      return (
-        <div
-          key={cat.k}
-          onDragOver={e => onDragOverCat(e, cat.k)}
-          onDrop={e => onDropOnCat(e, cat.k)}
-          style={{
-            marginBottom: "1.2rem",
-            padding: "0.6rem",
-            borderRadius: 4,
-            border: isCatOver ? "1px dashed rgba(200,169,81,0.3)" : "1px dashed transparent",
-            background: isCatOver ? "rgba(200,169,81,0.03)" : "none",
-            transition: "all 0.2s",
-            minHeight: 60,
-          }}
-        >
-          <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.5rem" }}>
-            <span>{cat.e}</span>
-            <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>{cat.l}</span>
-          </div>
-          {items.length > 0 ? items.map(renderItem) : (
-            <div style={{ padding: "0.8rem", textAlign: "center", fontSize: "0.75rem", color: "#4A4A3A", fontStyle: "italic", border: "1px dashed rgba(200,169,81,0.1)", borderRadius: 3 }}>
-              Drag practices here
-            </div>
-          )}
-        </div>
-      );
-    })}
+    {cats.map(cat => (
+      <HabitGroup 
+        key={cat.k}
+        catKey={cat.k}
+        title={cat.l}
+        emoji={cat.e}
+        items={getItemsForCat(cat.k)}
+        habits={ck}
+        onToggle={tog}
+        onReorder={onReorder}
+        todayKey={TODAY}
+        expanded={expanded}
+        setExpanded={setExpanded}
+        dragId={dragId}
+        overId={overId}
+        overCat={overCat}
+        onDragStart={onDragStart}
+        onDragOverItem={onDragOverItem}
+        onDropOnItem={onDropOnItem}
+        onDragEnd={onDragEnd}
+        onDragOverCat={onDragOverCat}
+        onDropOnCat={onDropOnCat}
+      />
+    ))}
 
-    {/* Energy Check */}
-    <div style={{ marginBottom: "1.2rem", padding: "1rem", borderRadius: 4, background: "rgba(200,169,81,0.03)", border: "1px solid rgba(200,169,81,0.08)" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: "0.5rem", marginBottom: "0.8rem" }}>
-        <span>🔋</span>
-        <span style={{ fontSize: "0.68rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>Energy Check</span>
-      </div>
-      <div style={{ display: "grid", gap: "0.8rem" }}>
-        {[
-          { k: "sleep", label: "Sleep", emoji: "💤" },
-          { k: "diet", label: "Diet", emoji: "🥗" },
-          { k: "exercise_e", label: "Movement", emoji: "🏃" },
-          { k: "focus", label: "Focus", emoji: "🎯" },
-          { k: "mood", label: "Mood", emoji: "✨" },
-        ].map(item => (
-          <div key={item.k} style={{ background: "#14171E", padding: "0.6rem 0.8rem", borderRadius: 3, border: "1px solid rgba(255,255,255,0.04)" }}>
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: "0.4rem" }}>
-                <span style={{ fontSize: "0.9rem" }}>{item.emoji}</span>
-                <span style={{ fontSize: "0.82rem", color: "#E8E4DC" }}>{item.label}</span>
-              </div>
-              <div style={{ display: "flex", gap: "0.2rem" }}>
-                {[1, 2, 3, 4, 5].map(n => (
-                  <button key={n} onClick={() => saveEnergy(item.k, n)} style={{
-                    width: 24, height: 24, border: "none", borderRadius: 2, cursor: "pointer", fontSize: "0.7rem", fontWeight: 500, fontFamily: "inherit",
-                    background: energy[item.k] >= n ? "rgba(200,169,81,0.6)" : "rgba(255,255,255,0.04)",
-                    color: energy[item.k] >= n ? "#0D0F14" : "#6A6A5A",
-                    transition: "all 0.15s"
-                  }}>{n}</button>
-                ))}
-              </div>
-            </div>
-            <input
-              type="text"
-              placeholder="Add a note..."
-              value={energy[item.k + "_note"] || ""}
-              onChange={e => saveEnergyNote(item.k, e.target.value)}
-              style={{
-                width: "100%", marginTop: "6px", padding: "6px 10px", 
-                background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", 
-                borderRadius: 4, color: "#8A8678", fontSize: "12px", fontFamily: "DM Sans", outline: "none",
-                transition: "border-color 0.2s"
-              }}
-              onFocus={(e) => { e.target.style.borderColor = "rgba(200,169,81,0.3)"; }}
-              onBlur={(e) => { e.target.style.borderColor = "rgba(255,255,255,0.06)"; }}
-            />
-          </div>
-        ))}
-      </div>
-    </div>
+    <EnergyCheck 
+      energy={energy} 
+      onScore={saveEnergy} 
+      onNote={saveEnergyNote} 
+      todayKey={TODAY} 
+    />
 
     {/* Daily Reflection */}
     <div style={{ marginBottom: "2rem", padding: "1rem", borderRadius: 4, background: "rgba(106,90,138,0.05)", border: "1px solid rgba(106,90,138,0.15)" }}>
