@@ -93,6 +93,15 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const toggleSabbath = () => {
     if (!data || !persist) return;
     const newState = !isSabbathObserved;
+    
+    if (newState && (!data.sabbath || !data.sabbath[sabbathWeekKey])) {
+      const currentGamification = JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] };
+      const newPerPillar = { ...currentGamification.perPillar, Sabbath: (currentGamification.perPillar.Sabbath || 0) + 150 };
+      const newTotalXP = (currentGamification.totalXP || 0) + 150;
+      const newGamification = { ...currentGamification, totalXP: newTotalXP, perPillar: newPerPillar };
+      localStorage.setItem("blos-gamification", JSON.stringify(newGamification));
+    }
+
     persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState } });
     
     if (newState) {

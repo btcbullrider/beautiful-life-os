@@ -15,7 +15,7 @@ export const PILLAR_BADGES = [
   { pillar: "Surrender", badge: "The Released", emoji: "🌊", xpRequired: 500 },
   { pillar: "Imagination", badge: "The Visionary", emoji: "🔮", xpRequired: 500 },
   { pillar: "Identity", badge: "The Embodied", emoji: "👑", xpRequired: 500 },
-  { pillar: "Environment", badge: "The Cultivated", emoji: "🌱", xpRequired: 500 },
+  { pillar: "Health", badge: "The Vital", emoji: "💪", xpRequired: 500 },
   { pillar: "Work", badge: "The Relentless", emoji: "⚡", xpRequired: 500 },
   { pillar: "Generosity", badge: "The Generous", emoji: "🤲", xpRequired: 500 },
   { pillar: "Sabbath", badge: "The Rested", emoji: "🕊️", xpRequired: 500 },

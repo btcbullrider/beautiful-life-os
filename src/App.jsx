@@ -139,9 +139,18 @@ export default function App() {
     if (isNowChecked) {
       const habitDef = CL.find(h => h.id === id);
       if (habitDef) {
-        setAnimTrigger({ id: Date.now(), xp: habitDef.xp || 0, pillar: habitDef.pillar, habitLabel: habitDef.label });
+        const todayKey = new Date().toISOString().split("T")[0];
+        // In App.jsx, 'journal' state contains today's text.
+        const journalContent = journal || "";
+        const hasJournalContent = journalContent.trim().length > 10;
+
+        const habitForXP = habitDef.id === "journal" && !hasJournalContent
+          ? { ...habitDef, pillar: null }
+          : habitDef;
+
+        setAnimTrigger({ id: Date.now(), xp: habitForXP.xp || 0, pillar: habitForXP.pillar, habitLabel: habitForXP.label });
         recordCombo();
-        const { newState, leveledUp, newLevelData } = awardXP(gamification, habitDef);
+        const { newState, leveledUp, newLevelData } = awardXP(gamification, habitForXP);
         saveGamification(newState);
         if (leveledUp) {
           setLevelUpData(newLevelData);

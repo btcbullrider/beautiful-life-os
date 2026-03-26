@@ -4,7 +4,7 @@ const PILLARS = [
   "Surrender",
   "Imagination",
   "Identity",
-  "Environment",
+  "Health",
   "Work",
   "Generosity",
   "Sabbath"
