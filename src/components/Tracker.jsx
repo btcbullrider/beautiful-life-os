@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { CL } from "../utils/constants";
 import { Quote } from "./shared/UI";
+import MonthlyRadarGallery from "./gamification/MonthlyRadarGallery";
 import {
   calcLongestStreak,
   calcCurrentStreakFromActiveDays,
@@ -85,42 +86,35 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   }
 
   // Sabbath logic
-  const sabbathWeekKey = `${currentMonday.getFullYear()}-${String(currentMonday.getMonth() + 1).padStart(2, "0")}-${String(currentMonday.getDate()).padStart(2, "0")}`;
-  const sabbathData = data?.sabbath || {};
-  const isSabbathObserved = !!sabbathData[sabbathWeekKey];
-  const totalObservedWeeks = Object.values(sabbathData).filter(v => v === true).length;
+  const sabbathWeekKey = (() => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    return monday.toISOString().split("T")[0];
+  })();
+
+  const isSabbathObserved = data?.sabbath?.[sabbathWeekKey] === true;
+  const totalObservedWeeks = Object.values(data?.sabbath || {}).filter(v => v === true).length;
 
   const toggleSabbath = () => {
     if (!data || !persist) return;
     const newState = !isSabbathObserved;
-    
-    if (newState && (!data.sabbath || !data.sabbath[sabbathWeekKey])) {
-      const currentGamification = JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] };
-      const newPerPillar = { ...currentGamification.perPillar, Sabbath: (currentGamification.perPillar.Sabbath || 0) + 150 };
-      const newTotalXP = (currentGamification.totalXP || 0) + 150;
-      const newGamification = { ...currentGamification, totalXP: newTotalXP, perPillar: newPerPillar };
-      localStorage.setItem("blos-gamification", JSON.stringify(newGamification));
-    }
-
-    persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState } });
-    
+    persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState }});
     if (newState) {
-      const newTotal = totalObservedWeeks + 1;
-      if (gamification && saveGamification) {
-        if (newTotal >= 4 && !gamification.unlockedBadges?.includes("Sabbath")) {
-          saveGamification({
-            ...gamification,
-            unlockedBadges: [...(gamification.unlockedBadges || []), "Sabbath"]
-          });
-        }
-      } else {
-        // TODO: Badge "Sabbath" logic is skipped as gamification and saveGamification are not available
+      const currentGamification = JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] };
+      if (!data.sabbath?.[sabbathWeekKey]) {
+        const newPerPillar = { ...currentGamification.perPillar, Sabbath: (currentGamification.perPillar?.Sabbath || 0) + 150 };
+        const newGamification = { ...currentGamification, totalXP: (currentGamification.totalXP || 0) + 150, perPillar: newPerPillar };
+        localStorage.setItem("blos-gamification", JSON.stringify(newGamification));
       }
     }
   };
 
   return (
     <div>
+      <MonthlyRadarGallery data={data} CL={CL} />
+      
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
           <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>MOVEMENT THIS WEEK</span>

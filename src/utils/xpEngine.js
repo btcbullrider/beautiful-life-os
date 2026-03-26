@@ -34,6 +34,14 @@ export function getNextLevel(totalXP) {
   return LEVELS.find(l => l.level === current.level + 1) || null;
 }
 
+export function applyPrestige(currentGamification) {
+  return {
+    ...currentGamification,
+    totalXP: 0,
+    prestigeCount: (currentGamification.prestigeCount || 0) + 1,
+  };
+}
+
 export function getLevelProgress(totalXP) {
   const current = getLevelFromXP(totalXP);
   const next = getNextLevel(totalXP);

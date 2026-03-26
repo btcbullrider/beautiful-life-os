@@ -1,6 +1,6 @@
 import React from 'react';
 
-export default function LevelUpModal({ show, levelData, onDismiss }) {
+export default function LevelUpModal({ show, levelData, onDismiss, onPrestige }) {
   if (!show || !levelData) return null;
 
   return (
@@ -80,6 +80,28 @@ export default function LevelUpModal({ show, levelData, onDismiss }) {
           >
             Continue →
           </button>
+          
+          {levelData.level === 10 && onPrestige && (
+            <button
+              onClick={() => {
+                onPrestige();
+                onDismiss();
+              }}
+              style={{
+                marginTop: "1rem",
+                padding: "0.7rem 2rem",
+                background: "transparent",
+                border: "1px solid #E8D5A0",
+                color: "#E8D5A0",
+                fontSize: "0.85rem",
+                letterSpacing: "0.1em",
+                cursor: "pointer",
+                animation: "fadeUp 0.5s 2.4s both"
+              }}
+            >
+              ✦ Prestige — Reset to Level 1
+            </button>
+          )}
         </div>
       </div>
     </>

@@ -12,7 +12,7 @@ import ReviewTab from "./components/Review";
 import LevelUpModal from "./components/gamification/LevelUpModal";
 import BadgeGallery from "./components/gamification/BadgeGallery";
 import AttributesWeb from "./components/gamification/AttributesWeb";
-import { awardXP, getLevelFromXP, getLevelProgress, getNextLevel } from "./utils/xpEngine";
+import { awardXP, getLevelFromXP, getLevelProgress, getNextLevel, applyPrestige } from "./utils/xpEngine";
 import HabitAnimations from "./components/gamification/HabitAnimations";
 
 export default function App() {
@@ -23,8 +23,21 @@ export default function App() {
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpData, setLevelUpData] = useState(null);
   const [animTrigger, setAnimTrigger] = useState(null);
+  const [xpFloat, setXpFloat] = useState(null);
   const [comboCount, setComboCount] = useState(0);
   const [comboTimestamps, setComboTimestamps] = useState([]);
+
+  useEffect(() => {
+    if (xpFloat) {
+      const t = setTimeout(() => setXpFloat(null), 1200);
+      return () => clearTimeout(t);
+    }
+  }, [xpFloat]);
+
+  const handlePrestige = () => {
+    const newState = applyPrestige(gamification);
+    saveGamification(newState);
+  };
 
   const recordCombo = () => {
     const now = Date.now();
@@ -150,6 +163,7 @@ export default function App() {
 
         setAnimTrigger({ id: Date.now(), xp: habitForXP.xp || 0, pillar: habitForXP.pillar, habitLabel: habitForXP.label });
         recordCombo();
+        if (habitForXP.xp) setXpFloat({ amount: habitForXP.xp, id: Date.now() });
         const { newState, leveledUp, newLevelData } = awardXP(gamification, habitForXP);
         saveGamification(newState);
         if (leveledUp) {
@@ -197,6 +211,18 @@ export default function App() {
   // Derive current streak from history (any activity = streak day)
   const derivedStreak = calcCurrentStreak(history);
 
+  const STREAK_MILESTONES = [
+    { days: 30, title: "The Ignited", emoji: "🔥" },
+    { days: 60, title: "The Forged", emoji: "⚔️" },
+    { days: 90, title: "The Unshakeable", emoji: "🏔️" },
+    { days: 180, title: "The Immovable", emoji: "🌊" },
+    { days: 365, title: "The Living Proof", emoji: "👑" },
+  ];
+  const currentMilestone = STREAK_MILESTONES.filter(m => derivedStreak >= m.days).pop() || null;
+
+  const progress = gamification ? getLevelProgress(gamification.totalXP) : 0;
+  const glowIntensity = progress >= 80 ? "0 0 12px rgba(200,169,81,0.8)" : progress >= 60 ? "0 0 6px rgba(200,169,81,0.4)" : "0 0 4px rgba(200,169,81,0.2)";
+
   const todayKey = new Date().toISOString().split("T")[0];
   const todayHabits = checked;
   const isPerfectDay = CL.length > 0 && CL.every(h => todayHabits[h.id]);
@@ -211,7 +237,17 @@ export default function App() {
         <header style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "1.5rem 0 1rem", borderBottom: "1px solid rgba(200,169,81,0.1)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "1rem" }}>
             <div style={{ fontSize: "1.8rem", color: "#C8A951", opacity: 0.6 }}>✦</div>
-            <div><div style={{ fontSize: "1.15rem", fontWeight: 500 }}>Beautiful Life OS</div><div style={{ fontSize: "0.75rem", color: "#8A8678" }}>{dateStr}</div></div>
+            <div>
+              <div style={{ fontSize: "1.15rem", fontWeight: 500, display: "flex", alignItems: "center", gap: "0.5rem" }}>
+                Beautiful Life OS
+                {gamification?.prestigeCount > 0 && (
+                  <span style={{ color: "#C8A951", fontSize: "0.7rem", letterSpacing: "0.1em" }}>
+                    {"✦".repeat(gamification.prestigeCount)}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: "0.75rem", color: "#8A8678" }}>{dateStr}</div>
+            </div>
           </div>
           <div style={{ display: "flex", flexDirection: "column", alignItems: "center", background: "rgba(200,169,81,0.06)", border: "1px solid rgba(200,169,81,0.15)", borderRadius: 4, padding: "0.4rem 0.9rem" }}>
             <span style={{ fontSize: "1.3rem", fontWeight: 600, color: "#C8A951" }}>{derivedStreak}</span>
@@ -219,17 +255,30 @@ export default function App() {
           </div>
         </header>
         <div style={{ width: "100%", marginBottom: 0 }}>
-          <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", width: "100%" }}>
+          <style>
+            {`
+              @keyframes xpFloatUp {
+                0% { opacity: 1; transform: translateY(0); }
+                100% { opacity: 0; transform: translateY(-20px); }
+              }
+            `}
+          </style>
+          <div style={{ height: "3px", background: "rgba(255,255,255,0.06)", width: "100%", position: "relative" }}>
             <div style={{
               height: "100%",
-              width: `${getLevelProgress(gamification.totalXP)}%`,
+              width: `${progress}%`,
               background: "linear-gradient(90deg, #C8A951, #E8D5A0)",
-              transition: "width 0.6s ease",
-              boxShadow: "0 0 6px rgba(200,169,81,0.4)"
+              transition: "width 0.6s cubic-bezier(0.4, 0, 0.2, 1)",
+              boxShadow: glowIntensity
             }} />
+            {xpFloat && (
+              <div key={xpFloat.id} style={{ position: "absolute", right: 0, top: "-18px", color: "#C8A951", fontSize: "11px", fontWeight: 600, animation: "xpFloatUp 1.2s ease-out forwards", pointerEvents: "none" }}>
+                +{xpFloat.amount} XP
+              </div>
+            )}
           </div>
           <div style={{ display: "flex", justifyContent: "space-between", padding: "4px 0 6px", fontSize: "10px", color: "#8A8678" }}>
-            <span>Level {getLevelFromXP(gamification.totalXP).level} · {getLevelFromXP(gamification.totalXP).title}</span>
+            <span>Level {getLevelFromXP(gamification.totalXP).level} · {currentMilestone ? `${currentMilestone.emoji} ${currentMilestone.title}` : getLevelFromXP(gamification.totalXP).title}</span>
             <span>{getNextLevel(gamification.totalXP) ? `${getNextLevel(gamification.totalXP).xpRequired - gamification.totalXP} XP to next` : "Max Level"}</span>
           </div>
         </div>
@@ -266,7 +315,7 @@ export default function App() {
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>
       </div>
       <HabitAnimations trigger={animTrigger} comboCount={comboCount} isPerfectDay={isPerfectDay} />
-      <LevelUpModal show={showLevelUp} levelData={levelUpData} onDismiss={() => setShowLevelUp(false)} />
+      <LevelUpModal show={showLevelUp} levelData={levelUpData} onDismiss={() => setShowLevelUp(false)} onPrestige={handlePrestige} />
     </div>
   );
 }
