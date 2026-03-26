@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { CL } from "../utils/constants";
 import { Quote } from "./shared/UI";
 import MonthlyRadarGallery from "./gamification/MonthlyRadarGallery";
+import BadgeGallery from "./gamification/BadgeGallery";
 import {
   calcLongestStreak,
   calcCurrentStreakFromActiveDays,
@@ -19,6 +20,77 @@ import StatsRow from "./tracker/StatsRow";
 export default function TrackerTab({ history, updateHistoryItem, data, persist, gamification, saveGamification }) {
   const [editingDate, setEditingDate] = useState(null);
   const [viewingPractice, setViewingPractice] = useState(null);
+
+  const currentMonthKey = new Date().toISOString().slice(0, 7);
+
+  const getMonthlyPerPillar = () => {
+    const perPillar = {};
+    if (!data?.habits) return perPillar;
+    
+    Object.keys(data.habits).forEach(date => {
+      if (!date.startsWith(currentMonthKey)) return;
+      const habitsDay = data.habits[date] || {};
+      const deepworkCount = ["deepwork1","deepwork2","deepwork3"].filter(id => habitsDay[id]).length;
+      
+      Object.entries(habitsDay).forEach(([habitId, isCompleted]) => {
+        if (!isCompleted) return;
+        const hDef = CL.find(c => c.id === habitId);
+        if (!hDef || !hDef.pillar) return;
+        if (hDef.pillar === "Work" && deepworkCount < 2) return;
+        if (habitId === "exercise") return;
+        perPillar[hDef.pillar] = (perPillar[hDef.pillar] || 0) + (hDef.xp || 0);
+      });
+    });
+
+    // Add Sabbath
+    if (data.sabbath) {
+      Object.entries(data.sabbath).forEach(([k, v]) => {
+        if (v && k.startsWith(currentMonthKey.slice(0,7))) {
+          perPillar["Sabbath"] = (perPillar["Sabbath"] || 0) + 150;
+        }
+      });
+    }
+
+    return perPillar;
+  };
+
+  const monthlyPerPillar = getMonthlyPerPillar();
+
+  const BADGE_THRESHOLD = 500;
+  const PILLARS = ["Surrender","Imagination","Identity","Health","Work","Generosity","Sabbath"];
+
+  const [badgeStreaks, setBadgeStreaks] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("blos-badge-streaks")) || {}; }
+    catch { return {}; }
+  });
+
+  useEffect(() => {
+    const updated = { ...badgeStreaks };
+    let changed = false;
+    
+    PILLARS.forEach(pillar => {
+      const xp = monthlyPerPillar[pillar] || 0;
+      const existing = updated[pillar] || { streak: 0, lastEarnedMonth: null };
+      
+      if (xp >= BADGE_THRESHOLD && existing.lastEarnedMonth !== currentMonthKey) {
+        const prevMonth = new Date();
+        prevMonth.setMonth(prevMonth.getMonth() - 1);
+        const prevMonthKey = prevMonth.toISOString().slice(0, 7);
+        
+        const newStreak = existing.lastEarnedMonth === prevMonthKey 
+          ? existing.streak + 1 
+          : 1;
+        
+        updated[pillar] = { streak: newStreak, lastEarnedMonth: currentMonthKey };
+        changed = true;
+      }
+    });
+    
+    if (changed) {
+      setBadgeStreaks(updated);
+      localStorage.setItem("blos-badge-streaks", JSON.stringify(updated));
+    }
+  }, [monthlyPerPillar]);
 
   // Compute stats
   const days = Object.keys(history).sort();
@@ -116,6 +188,12 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   return (
     <div>
       <MonthlyRadarGallery data={data} CL={CL} />
+      
+      <BadgeGallery 
+        unlockedBadges={PILLARS.filter(p => (monthlyPerPillar[p] || 0) >= BADGE_THRESHOLD)}
+        perPillar={monthlyPerPillar}
+        badgeStreaks={badgeStreaks}
+      />
       
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>

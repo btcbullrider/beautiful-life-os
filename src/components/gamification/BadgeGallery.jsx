@@ -1,7 +1,7 @@
 import React from 'react';
 import { PILLAR_BADGES } from '../../utils/xpEngine';
 
-export default function BadgeGallery({ unlockedBadges = [], perPillar = {} }) {
+export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badgeStreaks = {} }) {
   return (
     <div>
       <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
@@ -11,6 +11,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {} }) {
         {PILLAR_BADGES.map(badgeData => {
           const isUnlocked = unlockedBadges.includes(badgeData.pillar);
           const xp = perPillar[badgeData.pillar] || 0;
+          const streak = badgeStreaks[badgeData.pillar]?.streak || 0;
 
           return (
             <div key={badgeData.pillar} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
@@ -54,9 +55,14 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {} }) {
                   {badgeData.pillar}
                 </div>
               </div>
-              <div style={{ fontSize: "7px", color: "#8A8678", marginTop: "4px", textAlign: "center", width: "80px" }}>
-                {xp} / {badgeData.xpRequired || 500} XP
+              <div style={{ fontSize: "7px", color: "#8A8678", marginTop: "4px", textAlign: "center", width: "90px", whiteSpace: "nowrap" }}>
+                {xp} / 500 XP THIS MONTH
               </div>
+              {streak > 0 && (
+                <div style={{ fontSize: "8px", color: "#C8A951", marginTop: "2px", fontWeight: "bold" }}>
+                  🔥 {streak} month streak
+                </div>
+              )}
             </div>
           );
         })}
