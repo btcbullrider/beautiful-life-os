@@ -67,6 +67,35 @@ export default function App() {
   const [joIdx, setJoIdx] = useState([]);
   const [weeklyReviews, setWeeklyReviews] = useState({});
 
+  const [sabbath, setSabbath] = useState(() => {
+    try { return JSON.parse(localStorage.getItem("blos-sabbath")) || {}; } catch { return {}; }
+  });
+  const persist = (newData) => {
+    if (newData.sabbath) {
+      setSabbath(newData.sabbath);
+      localStorage.setItem("blos-sabbath", JSON.stringify(newData.sabbath));
+    }
+  };
+
+  const appData = { sabbath, habits: {}, energy: {} };
+  Object.keys(history).forEach(date => {
+    const items = history[date]?.items || [];
+    const dayHabits = {};
+    items.forEach(id => { dayHabits[id] = true; });
+    appData.habits[date] = dayHabits;
+  });
+  if (checked) {
+    appData.habits[getToday()] = { ...appData.habits[getToday()], ...checked };
+  }
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k.startsWith("en:") && k !== "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) appData.energy[k.replace("en:", "")] = jd.ratings; }
+      if (k === "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) appData.energy[getToday()] = jd.ratings; }
+    }
+  } catch (e) {}
+  const data = appData;
+
   // Check every 30 seconds if the date has rolled over
   useEffect(() => {
     const interval = setInterval(async () => {
@@ -292,7 +321,7 @@ export default function App() {
             <>
               <BadgeGallery unlockedBadges={gamification.unlockedBadges} perPillar={gamification.perPillar} />
               <AttributesWeb perPillar={gamification.perPillar} />
-              <TrackerTab history={history} updateHistoryItem={updateHistoryItem} />
+              <TrackerTab history={history} updateHistoryItem={updateHistoryItem} data={data} persist={persist} gamification={gamification} saveGamification={saveGamification} />
             </>
           )}
           {tab === "deepwork" && <DeepWorkTab />}

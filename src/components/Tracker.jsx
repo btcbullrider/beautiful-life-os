@@ -98,6 +98,7 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const totalObservedWeeks = Object.values(data?.sabbath || {}).filter(v => v === true).length;
 
   const toggleSabbath = () => {
+    console.log("toggleSabbath called", sabbathWeekKey, isSabbathObserved);
     if (!data || !persist) return;
     const newState = !isSabbathObserved;
     persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState }});
