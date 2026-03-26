@@ -17,8 +17,17 @@ import HabitAnimations from "./components/gamification/HabitAnimations";
 
 export default function App() {
   const [gamification, setGamification] = useState(() => {
-    try { return JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] }; }
-    catch { return { totalXP: 0, perPillar: {}, unlockedBadges: [] }; }
+    try {
+      const currentGamification = JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] };
+      if (currentGamification.perPillar?.Environment !== undefined) {
+        currentGamification.perPillar.Health = (currentGamification.perPillar.Health || 0) + currentGamification.perPillar.Environment;
+        delete currentGamification.perPillar.Environment;
+        localStorage.setItem("blos-gamification", JSON.stringify(currentGamification));
+      }
+      return currentGamification;
+    } catch {
+      return { totalXP: 0, perPillar: {}, unlockedBadges: [] };
+    }
   });
   const [showLevelUp, setShowLevelUp] = useState(false);
   const [levelUpData, setLevelUpData] = useState(null);

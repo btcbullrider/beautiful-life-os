@@ -87,6 +87,14 @@ export default function MonthlyRadarGallery({ data, CL }) {
         perPillar["Health"] = (perPillar["Health"] || 0) + 40;
       }
     });
+
+    if (data.sabbath) {
+      Object.entries(data.sabbath).forEach(([sabbathKey, isObserved]) => {
+        if (isObserved && sabbathKey.startsWith(monthKey)) {
+          perPillar["Sabbath"] = (perPillar["Sabbath"] || 0) + 150;
+        }
+      });
+    }
   });
 
   const monthKeys = Object.keys(monthsMap).sort().reverse();
