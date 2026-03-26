@@ -286,10 +286,7 @@ export default function App() {
           {tab === "guide" && <GuideTab />}
           {tab === "today" && <TodayTab ck={checked} tog={tog} prog={prog} cc={cc} tot={CL.length} order={order} onReorder={reorder} jo={journal} onChangeJo={v => { setJournal(v); saveJo(v); }} removedHabits={removedHabits} />}
           {tab === "tracker" && (
-            <>
-              <BadgeGallery unlockedBadges={gamification.unlockedBadges} perPillar={gamification.perPillar} />
-              <TrackerTab history={history} updateHistoryItem={updateHistoryItem} data={data} persist={persist} gamification={gamification} saveGamification={saveGamification} />
-            </>
+            <TrackerTab history={history} updateHistoryItem={updateHistoryItem} data={data} persist={persist} gamification={gamification} saveGamification={saveGamification} />
           )}
           {tab === "deepwork" && <DeepWorkTab />}
           {tab === "affirmations" && <AffTab aff={aff} ed={editing} setEd={setEditing} onSave={saveAf} />}

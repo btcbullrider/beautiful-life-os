@@ -7,7 +7,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
       <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
         PILLAR BADGES
       </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", width: "100%", paddingBottom: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, minmax(0, 1fr))", gap: "6px", width: "100%", paddingBottom: "8px" }}>
         {PILLAR_BADGES.map(badgeData => {
           const isUnlocked = unlockedBadges.includes(badgeData.pillar);
           const xp = perPillar[badgeData.pillar] || 0;
@@ -18,8 +18,10 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
               <div 
                 style={{
                   width: "100%",
+                  minWidth: 0,
+                  overflow: "hidden",
                   borderRadius: "8px",
-                  padding: "10px 6px",
+                  padding: "6px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
@@ -36,7 +38,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
               >
                 <div 
                   style={{
-                    fontSize: "1.8rem",
+                    fontSize: "1.4rem",
                     ...(isUnlocked ? { opacity: 1 } : { opacity: 0.2, color: "white" })
                   }}
                 >
@@ -44,18 +46,29 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
                 </div>
                 <div 
                   style={{
-                    fontSize: "8px",
-                    color: isUnlocked ? "#C8A951" : "#4A4A4A"
+                    fontSize: "7px",
+                    color: isUnlocked ? "#C8A951" : "#4A4A4A",
+                    overflow: "hidden",
+                    textOverflow: "ellipsis",
+                    whiteSpace: "nowrap",
+                    width: "100%",
+                    textAlign: "center"
                   }}
                 >
                   {isUnlocked ? badgeData.badge : "???"}
                 </div>
-                <div style={{ fontSize: "7px", color: "#8A8678" }}>
+                <div style={{ 
+                  fontSize: "6px", 
+                  color: "#8A8678",
+                  overflow: "hidden",
+                  textOverflow: "ellipsis",
+                  whiteSpace: "nowrap"
+                }}>
                   {badgeData.pillar}
                 </div>
               </div>
-              <div style={{ fontSize: "7px", color: "#8A8678", marginTop: "4px", textAlign: "center", width: "90px", whiteSpace: "nowrap" }}>
-                {xp} / 500 XP THIS MONTH
+              <div style={{ fontSize: "7px", color: "#8A8678", marginTop: "4px", textAlign: "center", width: "100%", whiteSpace: "nowrap" }}>
+                {xp} / 500 XP
               </div>
               {streak > 0 && (
                 <div style={{ fontSize: "8px", color: "#C8A951", marginTop: "2px", fontWeight: "bold" }}>
