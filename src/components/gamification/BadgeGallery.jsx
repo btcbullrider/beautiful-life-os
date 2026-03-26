@@ -7,7 +7,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
       <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
         PILLAR BADGES
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "8px", width: "100%", paddingBottom: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", width: "100%", padding: "0 4px", boxSizing: "border-box" }}>
         {PILLAR_BADGES.map(badgeData => {
           const isUnlocked = unlockedBadges.includes(badgeData.pillar);
           const xp = perPillar[badgeData.pillar] || 0;
@@ -17,29 +17,24 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
             <div key={badgeData.pillar} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div 
                 style={{
-                  flex: "1 1 calc(14.28% - 8px)",
-                  minWidth: "80px",
-                  maxWidth: "140px",
+                  aspectRatio: "1",
+                  width: "100%",
+                  background: isUnlocked ? "rgba(200,169,81,0.08)" : "rgba(255,255,255,0.02)",
+                  border: isUnlocked ? "1px solid rgba(200,169,81,0.3)" : "1px solid rgba(255,255,255,0.06)",
                   borderRadius: "8px",
-                  padding: "10px 6px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: "4px",
-                  textAlign: "center",
+                  justifyContent: "center",
+                  gap: "3px",
+                  padding: "6px 4px",
                   boxSizing: "border-box",
-                  ...(isUnlocked ? {
-                    background: "rgba(200, 169, 81, 0.08)",
-                    border: "1px solid rgba(200, 169, 81, 0.3)"
-                  } : {
-                    background: "rgba(255, 255, 255, 0.02)",
-                    border: "1px solid rgba(255, 255, 255, 0.06)"
-                  })
+                  overflow: "hidden"
                 }}
               >
                 <div 
                   style={{
-                    fontSize: "1.6rem",
+                    fontSize: "clamp(0.9rem, 2vw, 1.4rem)",
                     ...(isUnlocked ? { opacity: 1 } : { opacity: 0.2, color: "white" })
                   }}
                 >
@@ -47,8 +42,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
                 </div>
                 <div 
                   style={{
-                    fontSize: "8px",
-                    lineHeight: 1.3,
+                    fontSize: "clamp(6px, 1vw, 8px)",
                     color: isUnlocked ? "#C8A951" : "#4A4A4A",
                     overflow: "hidden",
                     textOverflow: "ellipsis",
@@ -59,21 +53,15 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
                 >
                   {isUnlocked ? badgeData.badge : "???"}
                 </div>
-                <div style={{ 
-                  fontSize: "7px", 
-                  color: "#8A8678",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap"
-                }}>
+                <div style={{ fontSize: "clamp(5px, 0.8vw, 7px)", color: "#8A8678", textAlign: "center" }}>
                   {badgeData.pillar}
                 </div>
               </div>
-              <div style={{ fontSize: "7px", color: "#8A8678", marginTop: "4px", textAlign: "center", width: "100%", whiteSpace: "nowrap" }}>
+              <div style={{ fontSize: "clamp(5px, 0.8vw, 7px)", color: "#8A8678", textAlign: "center", marginTop: "3px" }}>
                 {xp} / 500 XP
               </div>
               {streak > 0 && (
-                <div style={{ fontSize: "8px", color: "#C8A951", marginTop: "2px", fontWeight: "bold" }}>
+                <div style={{ fontSize: "clamp(6px, 0.9vw, 8px)", color: "#C8A951", textAlign: "center" }}>
                   🔥 {streak} month streak
                 </div>
               )}
