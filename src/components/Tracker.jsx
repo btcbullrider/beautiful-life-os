@@ -68,19 +68,19 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
 
   // Compute Weekly Workout count
   const getWeekStart = () => {
-    const now = new Date();
-    const day = now.getDay();
-    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(now);
-    monday.setDate(diff);
-    monday.setHours(0,0,0,0);
+    const todayStr = new Date().toISOString().split("T")[0];
+    const d = new Date(todayStr + "T12:00:00Z");
+    const day = d.getUTCDay();
+    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setUTCDate(diff);
     return monday;
   };
-  
+
   const weekStart = getWeekStart();
   const weekDates = Array.from({ length: 7 }, (_, i) => {
     const d = new Date(weekStart);
-    d.setDate(weekStart.getDate() + i);
+    d.setUTCDate(weekStart.getUTCDate() + i);
     return d.toISOString().split("T")[0];
   });
   
