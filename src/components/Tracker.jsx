@@ -67,23 +67,24 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const todayStr = today.toISOString().slice(0, 10);
 
   // Compute Weekly Workout count
-  const getMonday = (d) => {
-    const d2 = new Date(d);
-    d2.setHours(0, 0, 0, 0);
-    const day = d2.getDay();
-    const diff = d2.getDate() - day + (day === 0 ? -6 : 1);
-    return new Date(d2.setDate(diff));
+  const getWeekStart = () => {
+    const now = new Date();
+    const day = now.getDay();
+    const diff = now.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(now);
+    monday.setDate(diff);
+    monday.setHours(0,0,0,0);
+    return monday;
   };
-  const currentMonday = getMonday(today);
-  let workoutCount = 0;
-  for (let i = 0; i < 7; i++) {
-    const d = new Date(currentMonday);
-    d.setDate(d.getDate() + i);
-    const dateKey = d.toISOString().slice(0, 10);
-    if (history[dateKey]?.items?.includes("exercise")) {
-      workoutCount++;
-    }
-  }
+  
+  const weekStart = getWeekStart();
+  const weekDates = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(weekStart);
+    d.setDate(weekStart.getDate() + i);
+    return d.toISOString().split("T")[0];
+  });
+  
+  const moveCount = weekDates.filter(dateKey => data.habits?.[dateKey]?.["exercise"] === true).length;
 
   // Sabbath logic
   const sabbathWeekKey = (() => {
@@ -102,13 +103,13 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
     if (!data || !persist) return;
     const newState = !isSabbathObserved;
     persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState }});
-    if (newState) {
-      const currentGamification = JSON.parse(localStorage.getItem("blos-gamification")) || { totalXP: 0, perPillar: {}, unlockedBadges: [] };
-      if (!data.sabbath?.[sabbathWeekKey]) {
-        const newPerPillar = { ...currentGamification.perPillar, Sabbath: (currentGamification.perPillar?.Sabbath || 0) + 150 };
-        const newGamification = { ...currentGamification, totalXP: (currentGamification.totalXP || 0) + 150, perPillar: newPerPillar };
-        localStorage.setItem("blos-gamification", JSON.stringify(newGamification));
-      }
+    if (newState && !data.sabbath?.[sabbathWeekKey]) {
+      const updated = {
+        ...gamification,
+        totalXP: (gamification.totalXP || 0) + 150,
+        perPillar: { ...gamification.perPillar, Sabbath: (gamification.perPillar?.Sabbath || 0) + 150 }
+      };
+      saveGamification(updated);
     }
   };
 
@@ -119,18 +120,18 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
           <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>MOVEMENT THIS WEEK</span>
-          <span style={{ fontSize: "10px", color: "#C8A951" }}>{workoutCount} / 7</span>
+          <span style={{ fontSize: "10px", color: "#C8A951" }}>{moveCount} / 7</span>
         </div>
         <div style={{ fontSize: "9px", color: "#8A8678", marginBottom: "1rem" }}>
           Base 4 · Bull 5
         </div>
         <div style={{ position: "relative", width: "100%", height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: "3px", width: `${(workoutCount / 7) * 100}%`, background: workoutCount < 4 ? "rgba(200,169,81,0.4)" : workoutCount < 5 ? "#5A8A6A" : "#C8A951", transition: "width 0.4s ease" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: "3px", width: `${(moveCount / 7) * 100}%`, background: moveCount < 4 ? "rgba(200,169,81,0.4)" : moveCount < 5 ? "#5A8A6A" : "#C8A951", transition: "width 0.4s ease" }} />
           <div style={{ position: "absolute", top: 0, left: `${(4/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
           <div style={{ position: "absolute", top: 0, left: `${(5/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
         </div>
-        <div style={{ marginTop: "0.8rem", fontSize: "11px", color: workoutCount < 4 ? "#8A8678" : workoutCount === 4 ? "#5A8A6A" : "#C8A951" }}>
-          {workoutCount < 4 ? `Keep pushing — ${4 - workoutCount} more to hit base` : workoutCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
+        <div style={{ marginTop: "0.8rem", fontSize: "11px", color: moveCount < 4 ? "#8A8678" : moveCount === 4 ? "#5A8A6A" : "#C8A951" }}>
+          {moveCount < 4 ? `Keep pushing — ${4 - moveCount} more to hit base` : moveCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
         </div>
       </div>
 
