@@ -187,13 +187,13 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
 
   return (
     <div>
-      <MonthlyRadarGallery data={data} CL={CL} />
-      
       <BadgeGallery 
         unlockedBadges={PILLARS.filter(p => (monthlyPerPillar[p] || 0) >= BADGE_THRESHOLD)}
         perPillar={monthlyPerPillar}
         badgeStreaks={badgeStreaks}
       />
+      
+      <MonthlyRadarGallery data={data} CL={CL} />
       
       <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>

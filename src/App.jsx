@@ -61,7 +61,7 @@ export default function App() {
       if (k.startsWith("en:") && k !== "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) appData.energy[k.replace("en:", "")] = jd.ratings; }
       if (k === "en:today") { const jd = JSON.parse(localStorage.getItem(k)); if (jd && jd.ratings) appData.energy[getToday()] = jd.ratings; }
     }
-  } catch (e) {}
+  } catch (e) { }
   const data = appData;
 
   // Check every 30 seconds if the date has rolled over
@@ -145,7 +145,7 @@ export default function App() {
   const tog = (id) => {
     const isNowChecked = !checked[id];
     const n = { ...checked, [id]: isNowChecked }; setChecked(n); saveCl(n);
-    
+
     if (isNowChecked) {
       const habitDef = CL.find(h => h.id === id);
       if (habitDef) {

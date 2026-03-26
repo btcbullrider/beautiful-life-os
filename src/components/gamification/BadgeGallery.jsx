@@ -7,7 +7,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
       <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
         PILLAR BADGES
       </div>
-      <div style={{ display: "flex", gap: "8px", overflowX: "auto", paddingBottom: "8px" }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: "8px", width: "100%", paddingBottom: "8px" }}>
         {PILLAR_BADGES.map(badgeData => {
           const isUnlocked = unlockedBadges.includes(badgeData.pillar);
           const xp = perPillar[badgeData.pillar] || 0;
@@ -17,8 +17,7 @@ export default function BadgeGallery({ unlockedBadges = [], perPillar = {}, badg
             <div key={badgeData.pillar} style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
               <div 
                 style={{
-                  width: "80px",
-                  minWidth: "80px",
+                  width: "100%",
                   borderRadius: "8px",
                   padding: "10px 6px",
                   display: "flex",
