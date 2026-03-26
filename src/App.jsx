@@ -329,7 +329,6 @@ export default function App() {
           {tab === "tracker" && (
             <>
               <BadgeGallery unlockedBadges={gamification.unlockedBadges} perPillar={gamification.perPillar} />
-              <AttributesWeb perPillar={gamification.perPillar} />
               <TrackerTab history={history} updateHistoryItem={updateHistoryItem} data={data} persist={persist} gamification={gamification} saveGamification={saveGamification} />
             </>
           )}
