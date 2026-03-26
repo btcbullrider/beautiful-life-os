@@ -113,11 +113,9 @@ export default function MonthlyRadarGallery({ data, CL }) {
       </div>
       <div style={{ 
         display: "flex", 
+        flexWrap: "wrap",
         gap: "16px", 
-        overflowX: "auto", 
-        paddingBottom: "1rem",
-        scrollSnapType: "x mandatory",
-        WebkitOverflowScrolling: "touch"
+        paddingBottom: "1rem"
       }}>
         {monthKeys.map(mk => {
           const isThisMonth = mk === currentMonthStr;
@@ -125,13 +123,15 @@ export default function MonthlyRadarGallery({ data, CL }) {
             <div 
               key={mk}
               style={{
-                width: "280px",
+                flex: "1 1 280px",
                 minWidth: "280px",
+                minHeight: "420px",
+                display: "flex",
+                flexDirection: "column",
                 background: "rgba(255,255,255,0.02)",
                 border: "1px solid rgba(255,255,255,0.06)",
                 borderRadius: 8,
-                padding: "1rem",
-                scrollSnapAlign: "start"
+                padding: "1rem"
               }}
             >
               <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "1.5rem" }}>
@@ -152,7 +152,9 @@ export default function MonthlyRadarGallery({ data, CL }) {
                   </span>
                 )}
               </div>
-              <AttributesWeb perPillar={monthsMap[mk].perPillar} />
+              <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <AttributesWeb perPillar={monthsMap[mk].perPillar} />
+              </div>
             </div>
           );
         })}
