@@ -26,7 +26,7 @@ export default function HeatmapCalendar({ history, setEditingDate }) {
         return "rgba(200,169,81,0.12)";
     };
 
-    const dayHeaders = ["S", "M", "T", "W", "T", "F", "S"];
+    const dayHeaders = ["M", "T", "W", "T", "F", "S", "S"];
 
     return (
         <div style={{ marginBottom: "2rem" }}>
@@ -35,7 +35,7 @@ export default function HeatmapCalendar({ history, setEditingDate }) {
                 {months.map((m, mi) => {
                     const firstDay = new Date(m.year, m.month, 1);
                     const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
-                    const startDow = firstDay.getDay();
+                    const startDow = (firstDay.getDay() + 6) % 7;
                     const monthLabel = firstDay.toLocaleDateString("en-US", { month: "short", year: "numeric" });
                     const cells = [];
                     for (let i = 0; i < startDow; i++) cells.push(null);
