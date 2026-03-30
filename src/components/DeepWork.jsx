@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { ld, sv, TODAY } from "../utils/storage";
 import { Quote } from "./shared/UI";
+import ProofOfWork from "./ProofOfWork";
 
 export default function DeepWorkTab() {
   const [tasks, setTasks] = useState([
@@ -145,49 +146,52 @@ export default function DeepWorkTab() {
       ) : <div style={{padding:"2rem",textAlign:"center",color:"#6A6A5A",fontStyle:"italic"}}>No data found for this date.</div>
     ) : (
       /* Today — normal edit/execute mode */
-      step === 0 ? (
-        <>
-          {tasks.map((task, i) => (
-            <div key={task.id} style={{marginBottom:"1.2rem"}}>
-              <div style={{display:"flex",alignItems:"center",gap:"0.6rem",marginBottom:"0.5rem"}}>
-                <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(200,169,81,0.1)",border:"1px solid rgba(200,169,81,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.85rem",fontWeight:600,color:"#C8A951"}}>{i+1}</div>
-                <div>
-                  <div style={{fontSize:"0.88rem",fontWeight:500,color:"#E8E4DC"}}>{prompts[i].q}</div>
-                  <div style={{fontSize:"0.7rem",color:"#6A6A5A",fontStyle:"italic"}}>{prompts[i].sub}</div>
+      <>
+        {step === 0 ? (
+          <>
+            {tasks.map((task, i) => (
+              <div key={task.id} style={{marginBottom:"1.2rem"}}>
+                <div style={{display:"flex",alignItems:"center",gap:"0.6rem",marginBottom:"0.5rem"}}>
+                  <div style={{width:28,height:28,borderRadius:"50%",background:"rgba(200,169,81,0.1)",border:"1px solid rgba(200,169,81,0.2)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.85rem",fontWeight:600,color:"#C8A951"}}>{i+1}</div>
+                  <div>
+                    <div style={{fontSize:"0.88rem",fontWeight:500,color:"#E8E4DC"}}>{prompts[i].q}</div>
+                    <div style={{fontSize:"0.7rem",color:"#6A6A5A",fontStyle:"italic"}}>{prompts[i].sub}</div>
+                  </div>
                 </div>
+                <input type="text" value={task.text} onChange={e => updateTask(task.id, "text", e.target.value)} placeholder="What needs to get done..." style={{width:"100%",background:"#14171E",border:"1px solid rgba(200,169,81,0.1)",borderRadius:3,color:"#E8E4DC",fontFamily:"inherit",fontSize:"0.9rem",padding:"0.8rem 1rem",outline:"none",marginBottom:"0.4rem",boxSizing:"border-box"}} />
+                <input type="text" value={task.why || ""} onChange={e => updateTask(task.id, "why", e.target.value)} placeholder="Why does this matter? (optional — but it sharpens focus)" style={{width:"100%",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(200,169,81,0.06)",borderRadius:3,color:"#8A8678",fontFamily:"inherit",fontSize:"0.78rem",padding:"0.6rem 1rem",outline:"none",fontStyle:"italic",boxSizing:"border-box"}} />
               </div>
-              <input type="text" value={task.text} onChange={e => updateTask(task.id, "text", e.target.value)} placeholder="What needs to get done..." style={{width:"100%",background:"#14171E",border:"1px solid rgba(200,169,81,0.1)",borderRadius:3,color:"#E8E4DC",fontFamily:"inherit",fontSize:"0.9rem",padding:"0.8rem 1rem",outline:"none",marginBottom:"0.4rem",boxSizing:"border-box"}} />
-              <input type="text" value={task.why || ""} onChange={e => updateTask(task.id, "why", e.target.value)} placeholder="Why does this matter? (optional — but it sharpens focus)" style={{width:"100%",background:"rgba(255,255,255,0.02)",border:"1px solid rgba(200,169,81,0.06)",borderRadius:3,color:"#8A8678",fontFamily:"inherit",fontSize:"0.78rem",padding:"0.6rem 1rem",outline:"none",fontStyle:"italic",boxSizing:"border-box"}} />
-            </div>
-          ))}
-          <button onClick={lockIn} disabled={!allFilled} style={{width:"100%",padding:"0.9rem",borderRadius:3,cursor:allFilled?"pointer":"default",fontFamily:"inherit",fontSize:"0.85rem",fontWeight:500,letterSpacing:"0.05em",background:allFilled?"rgba(200,169,81,0.15)":"rgba(255,255,255,0.03)",color:allFilled?"#C8A951":"#4A4A3A",border:allFilled?"1px solid rgba(200,169,81,0.3)":"1px solid rgba(255,255,255,0.05)",transition:"all 0.2s"}}>{allFilled ? "🔒 Lock in my priorities" : "Fill in all 3 to lock in"}</button>
-          <div style={{textAlign:"center",marginTop:"0.8rem",fontSize:"0.7rem",color:"#5A5A4A",fontStyle:"italic"}}>Once locked, you commit to these three. No adding. No switching. Just execution.</div>
-        </>
-      ) : (
-        <>
-          <div style={{marginBottom:"1.2rem"}}>
-            <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.6rem"}}>
-              <span style={{fontSize:"0.72rem",color:"#8A8678",letterSpacing:"0.1em",textTransform:"uppercase"}}>Deep Work Progress</span>
-              <span style={{fontSize:"0.85rem",color:"#C8A951"}}>{doneCount}/3</span>
-            </div>
-            <div style={{width:"100%",height:4,background:"rgba(255,255,255,0.04)",borderRadius:2,overflow:"hidden"}}>
-              <div style={{height:"100%",borderRadius:2,transition:"width 0.4s",width:`${(doneCount/3)*100}%`,background:doneCount===3?"linear-gradient(90deg,#5A8A6A,#C8A951)":"linear-gradient(90deg,#4A6FA5,#C8A951)"}}/>
-            </div>
-            {doneCount===3&&<div style={{textAlign:"center",color:"#C8A951",fontSize:"0.8rem",marginTop:"0.8rem",fontStyle:"italic"}}>⚡ All three blocks complete. Extraordinary day.</div>}
-          </div>
-          {tasks.map((task, i) => (
-            <button key={task.id} onClick={() => toggleDone(task.id)} style={{display:"flex",alignItems:"flex-start",gap:"0.8rem",width:"100%",background:task.done?"rgba(90,138,106,0.06)":"#14171E",border:`1px solid ${task.done?"rgba(90,138,106,0.15)":"rgba(200,169,81,0.08)"}`,borderRadius:3,padding:"1rem",marginBottom:"0.5rem",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#E8E4DC",transition:"all 0.2s"}}>
-              <div style={{width:24,height:24,borderRadius:3,border:`1.5px solid ${task.done?"#5A8A6A":"rgba(200,169,81,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.8rem",color:"#5A8A6A",background:task.done?"rgba(90,138,106,0.2)":"none",flexShrink:0,marginTop:"0.1rem"}}>{task.done&&"✓"}</div>
-              <div style={{flex:1}}>
-                <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"0.15rem"}}><span style={{fontSize:"0.65rem",fontWeight:600,color:"#C8A951",opacity:0.5}}>#{i+1}</span><span style={{fontSize:"0.9rem",fontWeight:500,opacity:task.done?0.5:1,textDecoration:task.done?"line-through":"none"}}>{task.text}</span></div>
-                {task.why && <div style={{fontSize:"0.75rem",color:"#6A6A5A",fontStyle:"italic",opacity:task.done?0.4:0.7}}>{task.why}</div>}
+            ))}
+            <button onClick={lockIn} disabled={!allFilled} style={{width:"100%",padding:"0.9rem",borderRadius:3,cursor:allFilled?"pointer":"default",fontFamily:"inherit",fontSize:"0.85rem",fontWeight:500,letterSpacing:"0.05em",background:allFilled?"rgba(200,169,81,0.15)":"rgba(255,255,255,0.03)",color:allFilled?"#C8A951":"#4A4A3A",border:allFilled?"1px solid rgba(200,169,81,0.3)":"1px solid rgba(255,255,255,0.05)",transition:"all 0.2s"}}>{allFilled ? "🔒 Lock in my priorities" : "Fill in all 3 to lock in"}</button>
+            <div style={{textAlign:"center",marginTop:"0.8rem",fontSize:"0.7rem",color:"#5A5A4A",fontStyle:"italic"}}>Once locked, you commit to these three. No adding. No switching. Just execution.</div>
+          </>
+        ) : (
+          <>
+            <div style={{marginBottom:"1.2rem"}}>
+              <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:"0.6rem"}}>
+                <span style={{fontSize:"0.72rem",color:"#8A8678",letterSpacing:"0.1em",textTransform:"uppercase"}}>Deep Work Progress</span>
+                <span style={{fontSize:"0.85rem",color:"#C8A951"}}>{doneCount}/3</span>
               </div>
-            </button>
-          ))}
-          <button onClick={unlock} style={{background:"none",border:"1px solid rgba(255,255,255,0.08)",color:"#6A6A5A",padding:"0.5rem 1rem",borderRadius:3,cursor:"pointer",fontSize:"0.72rem",fontFamily:"inherit",marginTop:"0.5rem"}}>🔓 Unlock & edit priorities</button>
-          <Quote text={'"Whatever your hand finds to do, do it with all your might."'} ref="Ecclesiastes 9:10" />
-        </>
-      )
+              <div style={{width:"100%",height:4,background:"rgba(255,255,255,0.04)",borderRadius:2,overflow:"hidden"}}>
+                <div style={{height:"100%",borderRadius:2,transition:"width 0.4s",width:`${(doneCount/3)*100}%`,background:doneCount===3?"linear-gradient(90deg,#5A8A6A,#C8A951)":"linear-gradient(90deg,#4A6FA5,#C8A951)"}}/>
+              </div>
+              {doneCount===3&&<div style={{textAlign:"center",color:"#C8A951",fontSize:"0.8rem",marginTop:"0.8rem",fontStyle:"italic"}}>⚡ All three blocks complete. Extraordinary day.</div>}
+            </div>
+            {tasks.map((task, i) => (
+              <button key={task.id} onClick={() => toggleDone(task.id)} style={{display:"flex",alignItems:"flex-start",gap:"0.8rem",width:"100%",background:task.done?"rgba(90,138,106,0.06)":"#14171E",border:`1px solid ${task.done?"rgba(90,138,106,0.15)":"rgba(200,169,81,0.08)"}`,borderRadius:3,padding:"1rem",marginBottom:"0.5rem",cursor:"pointer",fontFamily:"inherit",textAlign:"left",color:"#E8E4DC",transition:"all 0.2s"}}>
+                <div style={{width:24,height:24,borderRadius:3,border:`1.5px solid ${task.done?"#5A8A6A":"rgba(200,169,81,0.25)"}`,display:"flex",alignItems:"center",justifyContent:"center",fontSize:"0.8rem",color:"#5A8A6A",background:task.done?"rgba(90,138,106,0.2)":"none",flexShrink:0,marginTop:"0.1rem"}}>{task.done&&"✓"}</div>
+                <div style={{flex:1}}>
+                  <div style={{display:"flex",alignItems:"center",gap:"0.5rem",marginBottom:"0.15rem"}}><span style={{fontSize:"0.65rem",fontWeight:600,color:"#C8A951",opacity:0.5}}>#{i+1}</span><span style={{fontSize:"0.9rem",fontWeight:500,opacity:task.done?0.5:1,textDecoration:task.done?"line-through":"none"}}>{task.text}</span></div>
+                  {task.why && <div style={{fontSize:"0.75rem",color:"#6A6A5A",fontStyle:"italic",opacity:task.done?0.4:0.7}}>{task.why}</div>}
+                </div>
+              </button>
+            ))}
+            <button onClick={unlock} style={{background:"none",border:"1px solid rgba(255,255,255,0.08)",color:"#6A6A5A",padding:"0.5rem 1rem",borderRadius:3,cursor:"pointer",fontSize:"0.72rem",fontFamily:"inherit",marginTop:"0.5rem"}}>🔓 Unlock & edit priorities</button>
+          </>
+        )}
+        <ProofOfWork />
+        <Quote text={'"Whatever your hand finds to do, do it with all your might."'} ref="Ecclesiastes 9:10" />
+      </>
     )}
   </div>);
 }
