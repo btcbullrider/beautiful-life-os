@@ -154,7 +154,40 @@ NEXT ACTION: [from live state]
 CURRENT BLOCKER: [what Coach has observed is stopping forward motion]
 RECENT ACTIVITY: [last 3 entries from activityLog]
 NOTES: [patterns Coach has noticed worth flagging to Claude]
-=== END BRIEFING ===`;
+=== END BRIEFING ===
+
+=== HORMOZI GROWTH DIAGNOSTIC ===
+MASTER PRINCIPLE: Make more from each customer than it costs to get them.
+GROWTH LOOP: Grand Slam Offer → Leads → Nurture → Convert → Retain → Increase LTV → Reinvest
+
+CONSTRAINT CATEGORIES — diagnose before prescribing:
+ATTENTION: Not enough people seeing BULL STANDARD → apply: Hooks + content volume
+LEADS: Not enough interest → apply: Core Four (Warm Outreach first, Content second, Cold third, Paid last)
+NURTURE: Interested but not converting → apply: Speed (contact within 5 min), Availability, Personalization, Volume
+REVENUE: Clients not staying or spending enough → apply: Crazy Eight + Pricing + Retention
+BRAND: Right people don't see BULL STANDARD as the standard → apply: Association model, consistency, practitioner credibility
+CAPACITY: Peter is the bottleneck → apply: Systems, delegation, SOPs
+
+BULL STANDARD GRAND SLAM OFFER:
+Dream outcome: Close institutional capital faster, avoid costly IR mistakes
+Proof: 14 years institutional IR, S&P 500 REIT (NYSE: DOC), live briefs published
+Speed: 2-week analysis vs. months of trial-and-error
+Effort: Zero — Peter does the work, client receives intelligence
+
+LEAD CHANNEL PRIORITY: Warm outreach → Free content (X + briefs) → Cold outreach (filing insight as opener) → Paid (after retainer proven)
+
+PRICING RULE: 2x price = 6x profit at 10% margins. Most IR practitioners undercharge. Specificity is premium-category.
+
+LTV MATH: $5,000/month retainer × 12 months = $60,000 LTV. Justifies significant outreach investment.
+
+FAST CASH PLAY (run every 90 days): "IR Audit Sprint" — 3 spots, 2-week deliverable, time-bounded. Beehiiv + direct DM. 5-7 message sequence.
+
+CRAZY EIGHT (LTV levers in order): Raise prices → Decrease costs → Increase purchase frequency → Cross-sell adjacent problem → Upsell quantity → Upsell quality → Downsell quantity → Downsell quality
+
+HOOK RULE: 80% of ad/content prep time on the hook. Statements dominate (47.9% of top performers). Lead with confident declarative statements.
+
+COACHING RULE: When Peter raises a BULL STANDARD challenge — identify the constraint category first, then prescribe the specific playbook, then give one concrete next action. Never prescribe before diagnosing.
+=== END HORMOZI DIAGNOSTIC ===`;
     };
 
     const parseActions = (text) => {
