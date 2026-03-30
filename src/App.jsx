@@ -9,6 +9,7 @@ import DeepWorkTab from "./components/DeepWork";
 import AffTab from "./components/Affirmations";
 import CoachTab from "./components/Coach";
 import ReviewTab from "./components/Review";
+import PlaybookTab from "./components/Playbook";
 import LevelUpModal from "./components/gamification/LevelUpModal";
 import BadgeGallery from "./components/gamification/BadgeGallery";
 import AttributesWeb from "./components/gamification/AttributesWeb";
@@ -226,7 +227,7 @@ export default function App() {
 
   if (!loaded) return <div style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#0D0F14", gap: "1rem" }}><div style={{ fontSize: "2rem", color: "#C8A951" }}>✦</div><div style={{ color: "#8A8678", fontSize: "0.85rem" }}>Loading...</div></div>;
 
-  const tabs = [{ k: "guide", l: "✦ Guide" }, { k: "today", l: "Today" }, { k: "tracker", l: "Tracker" }, { k: "deepwork", l: "Deep Work" }, { k: "affirmations", l: "Affirmations" }, { k: "coach", l: "Coach" }, { k: "review", l: "Review" }];
+  const tabs = [{ k: "guide", l: "✦ Guide" }, { k: "today", l: "Today" }, { k: "tracker", l: "Tracker" }, { k: "deepwork", l: "Deep Work" }, { k: "affirmations", l: "Affirmations" }, { k: "coach", l: "Coach" }, { k: "review", l: "Review" }, { k: "playbook", l: "Playbook" }];
 
   return (
     <div style={{ minHeight: "100vh", background: "#0D0F14", color: "#E8E4DC", fontFamily: "'DM Sans','Helvetica Neue',sans-serif", fontWeight: 300 }}>
@@ -304,6 +305,7 @@ export default function App() {
             return <CoachTab data={{ ...coachData, removedHabits }} persist={(d) => { if (d.affirmations) saveAf(d.affirmations); if (d.habits?.[getToday()]) setChecked(d.habits[getToday()]); if (d.removedHabits) { setRemovedHabits(d.removedHabits); sv("removed_habits", d.removedHabits); } }} history={history} />;
           })()}
           {tab === "review" && <ReviewTab ps={ps} upPil={upPil} wn={wn} onWn={v => { setWn(v); saveWn(v); }} history={history} weeklyReviews={weeklyReviews} setWeeklyReviews={setWeeklyReviews} aff={aff} />}
+          {tab === "playbook" && <PlaybookTab />}
         </main>
         <footer style={{ textAlign: "center", padding: "2rem 0 3rem", color: "#5A5A4A", fontSize: "0.72rem", fontStyle: "italic", borderTop: "1px solid rgba(200,169,81,0.06)" }}>The system serves you — you serve Christ.</footer>
       </div>
