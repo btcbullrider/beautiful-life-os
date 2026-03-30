@@ -176,7 +176,7 @@ export default function ProofOfWork() {
         <div style={{ fontSize: "0.65rem", color: "#C8A951", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>{currentTitle}</div>
       </div>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: "1rem" }}>
+      <div style={{ display: "flex", flexWrap: "nowrap", gap: "1rem" }}>
         {CATEGORIES.map(cat => {
           const catData = data[cat.id] || { lifetime: 0, weekly: {} };
           const weekCount = (catData.weekly || {})[currentWeekKey] || 0;
@@ -189,7 +189,8 @@ export default function ProofOfWork() {
 
           return (
             <div key={cat.id} style={{ 
-              flex: "1 1 240px",
+              flex: 1,
+              minWidth: 0,
               background: "#14171E",
               border: "1px solid rgba(200,169,81,0.08)",
               borderRadius: "4px",
