@@ -62,6 +62,20 @@ export default function ProofOfWork() {
     sv(SK_POW, newData);
   };
 
+  const removePoint = (catId) => {
+    const newData = { ...data };
+    
+    // 1. Decrement lifetime (min 0)
+    newData[catId].lifetime = Math.max(0, (newData[catId].lifetime || 0) - 1);
+    
+    // 2. Decrement weekly (min 0)
+    if (!newData[catId].weekly) newData[catId].weekly = {};
+    newData[catId].weekly[currentWeekKey] = Math.max(0, (newData[catId].weekly[currentWeekKey] || 0) - 1);
+    
+    setData({ ...newData });
+    sv(SK_POW, newData);
+  };
+
   return (
     <div style={{ marginTop: "2rem", marginBottom: "1rem" }}>
       <div style={{ paddingBottom: "1.2rem", borderBottom: "1px solid rgba(255,255,255,0.06)", marginBottom: "1.5rem" }}>
@@ -127,23 +141,42 @@ export default function ProofOfWork() {
                 </div>
               </div>
 
-              <button 
-                onClick={() => addPoint(cat.id)}
-                style={{
-                  marginTop: "0.5rem",
-                  padding: "0.6rem",
-                  background: "rgba(200,169,81,0.1)",
-                  border: "1px solid rgba(200,169,81,0.2)",
-                  color: "#C8A951",
-                  borderRadius: "3px",
-                  cursor: "pointer",
-                  fontSize: "0.8rem",
-                  fontWeight: 600,
-                  transition: "all 0.2s"
-                }}
-              >
-                +1
-              </button>
+              <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+                <button 
+                  onClick={() => removePoint(cat.id)}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    background: "rgba(200,169,81,0.03)",
+                    border: "1px solid rgba(200,169,81,0.08)",
+                    color: "rgba(200,169,81,0.4)",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  -1
+                </button>
+                <button 
+                  onClick={() => addPoint(cat.id)}
+                  style={{
+                    flex: 1,
+                    padding: "0.6rem",
+                    background: "rgba(200,169,81,0.1)",
+                    border: "1px solid rgba(200,169,81,0.2)",
+                    color: "#C8A951",
+                    borderRadius: "3px",
+                    cursor: "pointer",
+                    fontSize: "0.8rem",
+                    fontWeight: 600,
+                    transition: "all 0.2s"
+                  }}
+                >
+                  +1
+                </button>
+              </div>
             </div>
           );
         })}
