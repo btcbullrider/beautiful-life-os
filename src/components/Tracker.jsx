@@ -22,10 +22,12 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const [calendarOffset, setCalendarOffset] = useState(0);
 
   const sabbathWeekKey = (() => {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
+    const todayStr = new Date().toISOString().split("T")[0];
+    const d = new Date(todayStr + "T12:00:00Z");
+    const day = d.getUTCDay();
+    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d);
+    monday.setUTCDate(diff);
     return monday.toISOString().split("T")[0];
   })();
 
@@ -37,6 +39,58 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       return { weekly: {} };
     }
   });
+
+  const [weeklyStreaks, setWeeklyStreaks] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("beautiful-life-os-v3")) || {};
+      return saved.weeklyStreaks || {
+        movement: { streak: 0, lastWeek: '' },
+        sabbath: { streak: 0, lastWeek: '' },
+        connect: { streak: 0, lastWeek: '' }
+      };
+    } catch {
+      return {
+        movement: { streak: 0, lastWeek: '' },
+        sabbath: { streak: 0, lastWeek: '' },
+        connect: { streak: 0, lastWeek: '' }
+      };
+    }
+  });
+
+  function getPrevWeekKey(currentKey) {
+    const d = new Date(currentKey + 'T12:00:00Z');
+    d.setUTCDate(d.getUTCDate() - 7);
+    return d.toISOString().split('T')[0];
+  }
+
+  const updateStreak = (category, currentWeekKey) => {
+    setWeeklyStreaks(prev => {
+      const catState = prev[category];
+      if (catState.lastWeek === currentWeekKey) return prev;
+
+      let newStreak = 1;
+      if (catState.lastWeek) {
+        if (catState.lastWeek === getPrevWeekKey(currentWeekKey)) {
+          newStreak = catState.streak + 1;
+        }
+      }
+
+      const nextState = {
+        ...prev,
+        [category]: { streak: newStreak, lastWeek: currentWeekKey }
+      };
+      
+      try {
+        const full = JSON.parse(localStorage.getItem("beautiful-life-os-v3")) || {};
+        full.weeklyStreaks = nextState;
+        localStorage.setItem("beautiful-life-os-v3", JSON.stringify(full));
+      } catch (e) {
+        console.error("Error saving weeklyStreaks", e);
+      }
+
+      return nextState;
+    });
+  };
 
   const updateCs = (delta) => {
     const currentCount = csData.weekly?.[sabbathWeekKey] || 0;
@@ -201,8 +255,21 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
         perPillar: { ...gamification.perPillar, Sabbath: (gamification.perPillar?.Sabbath || 0) + 150 }
       };
       saveGamification(updated);
+      updateStreak('sabbath', sabbathWeekKey);
     }
   };
+
+  useEffect(() => {
+    if (moveCount >= 4) {
+      updateStreak('movement', sabbathWeekKey);
+    }
+  }, [moveCount, sabbathWeekKey]);
+
+  useEffect(() => {
+    if (csCount >= 2) {
+      updateStreak('connect', sabbathWeekKey);
+    }
+  }, [csCount, sabbathWeekKey]);
 
   // Calendar logic directly in Tracker
   const getHeatColor = (count, total, isFuture) => {
@@ -249,6 +316,7 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
           </div>
           <div style={{ marginTop: "0.8rem", fontSize: "11px", color: moveCount < 4 ? "#8A8678" : moveCount === 4 ? "#5A8A6A" : "#C8A951" }}>
             {moveCount < 4 ? `Keep pushing — ${4 - moveCount} more to hit base` : moveCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
+            {weeklyStreaks.movement.streak > 0 && <span style={{ marginLeft: "8px", fontSize: "10px", color: "#8A8678" }}>🔥 {weeklyStreaks.movement.streak} week streak</span>}
           </div>
         </div>
 
@@ -277,6 +345,7 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
           </button>
           <div style={{ marginTop: "0.8rem", fontSize: "9px", color: "#8A8678" }}>
             {totalObservedWeeks} weeks of Sabbath kept
+            {weeklyStreaks.sabbath.streak > 0 && <span style={{ marginLeft: "4px" }}>· 🔥 {weeklyStreaks.sabbath.streak} week streak</span>}
           </div>
         </div>
 
@@ -322,6 +391,7 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
           <div>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
               <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
+              {weeklyStreaks.connect.streak > 0 && <span style={{ fontSize: "0.65rem", color: "#8A8678" }}>🔥 {weeklyStreaks.connect.streak} week streak</span>}
             </div>
             <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
               <div style={{ 
