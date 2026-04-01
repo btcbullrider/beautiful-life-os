@@ -233,139 +233,142 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       
       <MonthlyRadarGallery data={data} CL={CL} />
       
-      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-          <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>MOVEMENT THIS WEEK</span>
-          <span style={{ fontSize: "10px", color: "#C8A951" }}>{moveCount} / 7</span>
-        </div>
-        <div style={{ fontSize: "9px", color: "#8A8678", marginBottom: "1rem" }}>
-          Base 4 · Bull 5
-        </div>
-        <div style={{ position: "relative", width: "100%", height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }}>
-          <div style={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: "3px", width: `${(moveCount / 7) * 100}%`, background: moveCount < 4 ? "rgba(200,169,81,0.4)" : moveCount < 5 ? "#5A8A6A" : "#C8A951", transition: "width 0.4s ease" }} />
-          <div style={{ position: "absolute", top: 0, left: `${(4/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
-          <div style={{ position: "absolute", top: 0, left: `${(5/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
-        </div>
-        <div style={{ marginTop: "0.8rem", fontSize: "11px", color: moveCount < 4 ? "#8A8678" : moveCount === 4 ? "#5A8A6A" : "#C8A951" }}>
-          {moveCount < 4 ? `Keep pushing — ${4 - moveCount} more to hit base` : moveCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
-        </div>
-      </div>
-
-      <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", marginBottom: "1.5rem" }}>
-        <div style={{ marginBottom: "0.8rem" }}>
-          <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>SABBATH THIS WEEK</span>
-        </div>
-        <button
-          onClick={toggleSabbath}
-          style={{
-            width: "100%",
-            borderRadius: 6,
-            padding: "0.7rem",
-            cursor: "pointer",
-            transition: "0.2s",
-            background: isSabbathObserved ? "rgba(200,169,81,0.08)" : "rgba(255,255,255,0.02)",
-            border: isSabbathObserved ? "1px solid rgba(200,169,81,0.3)" : "1px solid rgba(255,255,255,0.06)",
-            color: isSabbathObserved ? "#C8A951" : "#8A8678",
-            fontSize: "0.85rem",
-            fontFamily: "inherit",
-            display: "block",
-            textAlign: "center"
-          }}
-        >
-          {isSabbathObserved ? "🕊️ Rest day observed" : "Did you observe a rest day?"}
-        </button>
-        <div style={{ marginTop: "0.8rem", fontSize: "9px", color: "#8A8678" }}>
-          {totalObservedWeeks} weeks of Sabbath kept
-        </div>
-      </div>
-
-      <div style={{ 
-        background: "#14171E", 
-        border: "1px solid rgba(200,169,81,0.08)", 
-        borderRadius: "4px", 
-        padding: "1.25rem", 
-        marginBottom: "1.5rem",
-        display: "flex",
-        flexDirection: "column",
-        gap: "0.8rem",
-        position: "relative"
-      }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-          <div>
-            <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
-              CONNECT / SERVE THIS WEEK
-            </div>
-            <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
-              {csCount}
-            </div>
-          </div>
-          {csCount >= 2 && (
-            <div style={{ 
-              background: "rgba(200,169,81,0.1)", 
-              border: "1px solid rgba(200,169,81,0.3)", 
-              color: "#C8A951", 
-              fontSize: "0.65rem", 
-              padding: "3px 6px", 
-              borderRadius: "3px",
-              fontWeight: 600,
-              display: "flex",
-              alignItems: "center",
-              gap: "4px"
-            }}>
-              ✓ Week Complete
-            </div>
-          )}
-        </div>
-
-        <div>
+      <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', gap: '16px', width: '100%', marginBottom: '1.5rem' }}>
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", flex: 1, minWidth: 0 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-            <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
+            <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>MOVEMENT THIS WEEK</span>
+            <span style={{ fontSize: "10px", color: "#C8A951" }}>{moveCount} / 7</span>
           </div>
-          <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-            <div style={{ 
-              width: `${Math.min(100, (csCount / 2) * 100)}%`, 
-              height: "100%", 
-              background: csCount >= 2 ? "#C8A951" : "rgba(200,169,81,0.3)", 
-              transition: "width 0.3s ease" 
-            }} />
+          <div style={{ fontSize: "9px", color: "#8A8678", marginBottom: "1rem" }}>
+            Base 4 · Bull 5
+          </div>
+          <div style={{ position: "relative", width: "100%", height: "6px", background: "rgba(255,255,255,0.06)", borderRadius: "3px" }}>
+            <div style={{ position: "absolute", top: 0, left: 0, height: "100%", borderRadius: "3px", width: `${(moveCount / 7) * 100}%`, background: moveCount < 4 ? "rgba(200,169,81,0.4)" : moveCount < 5 ? "#5A8A6A" : "#C8A951", transition: "width 0.4s ease" }} />
+            <div style={{ position: "absolute", top: 0, left: `${(4/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
+            <div style={{ position: "absolute", top: 0, left: `${(5/7)*100}%`, width: "2px", height: "100%", background: "rgba(255,255,255,0.3)" }} />
+          </div>
+          <div style={{ marginTop: "0.8rem", fontSize: "11px", color: moveCount < 4 ? "#8A8678" : moveCount === 4 ? "#5A8A6A" : "#C8A951" }}>
+            {moveCount < 4 ? `Keep pushing — ${4 - moveCount} more to hit base` : moveCount === 4 ? "Base case hit ✓" : "Bull case hit ⚡"}
           </div>
         </div>
 
-        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-          <button 
-            onClick={() => updateCs(-1)}
+        <div style={{ background: "rgba(255,255,255,0.02)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 8, padding: "1rem", flex: 1, minWidth: 0 }}>
+          <div style={{ marginBottom: "0.8rem" }}>
+            <span style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>SABBATH THIS WEEK</span>
+          </div>
+          <button
+            onClick={toggleSabbath}
             style={{
-              flex: 1,
-              padding: "0.6rem",
-              background: "rgba(200,169,81,0.03)",
-              border: "1px solid rgba(200,169,81,0.08)",
-              color: "rgba(200,169,81,0.4)",
-              borderRadius: "3px",
+              width: "100%",
+              borderRadius: 6,
+              padding: "0.7rem",
               cursor: "pointer",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              transition: "all 0.2s"
+              transition: "0.2s",
+              background: isSabbathObserved ? "rgba(200,169,81,0.08)" : "rgba(255,255,255,0.02)",
+              border: isSabbathObserved ? "1px solid rgba(200,169,81,0.3)" : "1px solid rgba(255,255,255,0.06)",
+              color: isSabbathObserved ? "#C8A951" : "#8A8678",
+              fontSize: "0.85rem",
+              fontFamily: "inherit",
+              display: "block",
+              textAlign: "center"
             }}
           >
-            -1
+            {isSabbathObserved ? "🕊️ Rest day observed" : "Did you observe a rest day?"}
           </button>
-          <button 
-            onClick={() => updateCs(1)}
-            style={{
-              flex: 1,
-              padding: "0.6rem",
-              background: "rgba(200,169,81,0.1)",
-              border: "1px solid rgba(200,169,81,0.2)",
-              color: "#C8A951",
-              borderRadius: "3px",
-              cursor: "pointer",
-              fontSize: "0.8rem",
-              fontWeight: 600,
-              transition: "all 0.2s"
-            }}
-          >
-            +1
-          </button>
+          <div style={{ marginTop: "0.8rem", fontSize: "9px", color: "#8A8678" }}>
+            {totalObservedWeeks} weeks of Sabbath kept
+          </div>
+        </div>
+
+        <div style={{ 
+          background: "#14171E", 
+          border: "1px solid rgba(200,169,81,0.08)", 
+          borderRadius: "4px", 
+          padding: "1.25rem", 
+          display: "flex",
+          flexDirection: "column",
+          gap: "0.8rem",
+          position: "relative",
+          flex: 1,
+          minWidth: 0
+        }}>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <div>
+              <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
+                CONNECT / SERVE THIS WEEK
+              </div>
+              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
+                {csCount}
+              </div>
+            </div>
+            {csCount >= 2 && (
+              <div style={{ 
+                background: "rgba(200,169,81,0.1)", 
+                border: "1px solid rgba(200,169,81,0.3)", 
+                color: "#C8A951", 
+                fontSize: "0.65rem", 
+                padding: "3px 6px", 
+                borderRadius: "3px",
+                fontWeight: 600,
+                display: "flex",
+                alignItems: "center",
+                gap: "4px"
+              }}>
+                ✓ Week Complete
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+              <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
+            </div>
+            <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
+              <div style={{ 
+                width: `${Math.min(100, (csCount / 2) * 100)}%`, 
+                height: "100%", 
+                background: csCount >= 2 ? "#C8A951" : "rgba(200,169,81,0.3)", 
+                transition: "width 0.3s ease" 
+              }} />
+            </div>
+          </div>
+
+          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+            <button 
+              onClick={() => updateCs(-1)}
+              style={{
+                flex: 1,
+                padding: "0.6rem",
+                background: "rgba(200,169,81,0.03)",
+                border: "1px solid rgba(200,169,81,0.08)",
+                color: "rgba(200,169,81,0.4)",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                transition: "all 0.2s"
+              }}
+            >
+              -1
+            </button>
+            <button 
+              onClick={() => updateCs(1)}
+              style={{
+                flex: 1,
+                padding: "0.6rem",
+                background: "rgba(200,169,81,0.1)",
+                border: "1px solid rgba(200,169,81,0.2)",
+                color: "#C8A951",
+                borderRadius: "3px",
+                cursor: "pointer",
+                fontSize: "0.8rem",
+                fontWeight: 600,
+                transition: "all 0.2s"
+              }}
+            >
+              +1
+            </button>
+          </div>
         </div>
       </div>
 
