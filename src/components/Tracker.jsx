@@ -16,6 +16,102 @@ import Awards from "./tracker/Awards";
 import EditDayModal from "./tracker/EditDayModal";
 import StatsRow from "./tracker/StatsRow";
 
+function WeeklyCounterCard({ title, count, target, streak, onIncrement, onDecrement }) {
+  return (
+    <div style={{ 
+      background: "#14171E", 
+      border: "1px solid rgba(200,169,81,0.08)", 
+      borderRadius: "4px", 
+      padding: "1.25rem", 
+      display: "flex",
+      flexDirection: "column",
+      gap: "0.8rem",
+      position: "relative",
+      flex: 1,
+      minWidth: 0
+    }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
+            {title}
+          </div>
+          <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
+            {count}
+          </div>
+        </div>
+        {count >= target && (
+          <div style={{ 
+            background: "rgba(200,169,81,0.1)", 
+            border: "1px solid rgba(200,169,81,0.3)", 
+            color: "#C8A951", 
+            fontSize: "0.65rem", 
+            padding: "3px 6px", 
+            borderRadius: "3px",
+            fontWeight: 600,
+            display: "flex",
+            alignItems: "center",
+            gap: "4px"
+          }}>
+            ✓ Week Complete
+          </div>
+        )}
+      </div>
+
+      <div>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+          <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{count} / {target} this week</span>
+          {streak > 0 && <span style={{ fontSize: "0.65rem", color: "#8A8678" }}>🔥 {streak} week streak</span>}
+        </div>
+        <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
+          <div style={{ 
+            width: `${Math.min(100, (count / target) * 100)}%`, 
+            height: "100%", 
+            background: count >= target ? "#C8A951" : "rgba(200,169,81,0.3)", 
+            transition: "width 0.3s ease" 
+          }} />
+        </div>
+      </div>
+
+      <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+        <button 
+          onClick={onDecrement}
+          style={{
+            flex: 1,
+            padding: "0.6rem",
+            background: "rgba(200,169,81,0.03)",
+            border: "1px solid rgba(200,169,81,0.08)",
+            color: "rgba(200,169,81,0.4)",
+            borderRadius: "3px",
+            cursor: "pointer",
+            fontSize: "0.8rem",
+            fontWeight: 600,
+            transition: "all 0.2s"
+          }}
+        >
+          -1
+        </button>
+        <button 
+          onClick={onIncrement}
+          style={{
+            flex: 1,
+            padding: "0.6rem",
+            background: "rgba(200,169,81,0.1)",
+            border: "1px solid rgba(200,169,81,0.2)",
+            color: "#C8A951",
+            borderRadius: "3px",
+            cursor: "pointer",
+            fontSize: "0.8rem",
+            fontWeight: 600,
+            transition: "all 0.2s"
+          }}
+        >
+          +1
+        </button>
+      </div>
+    </div>
+  );
+}
+
 export default function TrackerTab({ history, updateHistoryItem, data, persist, gamification, saveGamification }) {
   const [editingDate, setEditingDate] = useState(null);
   const [viewingPractice, setViewingPractice] = useState(null);
@@ -246,23 +342,6 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
-  const getWeekStart = () => {
-    const todayStr = new Date().toISOString().split("T")[0];
-    const d = new Date(todayStr + "T12:00:00Z");
-    const day = d.getUTCDay();
-    const diff = d.getUTCDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d);
-    monday.setUTCDate(diff);
-    return monday;
-  };
-
-  const weekStart = getWeekStart();
-  const weekDates = Array.from({ length: 7 }, (_, i) => {
-    const d = new Date(weekStart);
-    d.setUTCDate(weekStart.getUTCDate() + i);
-    return d.toISOString().split("T")[0];
-  });
-  
   const sabbathCount = data?.sabbath?.[sabbathWeekKey] === true ? 1 : 0;
 
   const updateSabbath = (delta) => {
@@ -331,281 +410,30 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       <MonthlyRadarGallery data={data} CL={CL} />
       
       <div style={{ display: 'flex', flexDirection: 'row', flexWrap: 'nowrap', gap: '16px', width: '100%', marginBottom: '1.5rem' }}>
-        <div style={{ 
-          background: "#14171E", 
-          border: "1px solid rgba(200,169,81,0.08)", 
-          borderRadius: "4px", 
-          padding: "1.25rem", 
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.8rem",
-          position: "relative",
-          flex: 1,
-          minWidth: 0
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
-                MOVEMENT THIS WEEK
-              </div>
-              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
-                {moveCount}
-              </div>
-            </div>
-            {moveCount >= 4 && (
-              <div style={{ 
-                background: "rgba(200,169,81,0.1)", 
-                border: "1px solid rgba(200,169,81,0.3)", 
-                color: "#C8A951", 
-                fontSize: "0.65rem", 
-                padding: "3px 6px", 
-                borderRadius: "3px",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: "4px"
-              }}>
-                ✓ Week Complete
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{moveCount} / 4 this week</span>
-              {weeklyStreaks.movement.streak > 0 && <span style={{ fontSize: "0.65rem", color: "#8A8678" }}>🔥 {weeklyStreaks.movement.streak} week streak</span>}
-            </div>
-            <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-              <div style={{ 
-                width: `${Math.min(100, (moveCount / 4) * 100)}%`, 
-                height: "100%", 
-                background: moveCount >= 4 ? "#C8A951" : "rgba(200,169,81,0.3)", 
-                transition: "width 0.3s ease" 
-              }} />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <button 
-              onClick={() => updateMovement(-1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.03)",
-                border: "1px solid rgba(200,169,81,0.08)",
-                color: "rgba(200,169,81,0.4)",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              -1
-            </button>
-            <button 
-              onClick={() => updateMovement(1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.1)",
-                border: "1px solid rgba(200,169,81,0.2)",
-                color: "#C8A951",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              +1
-            </button>
-          </div>
-        </div>
-
-        <div style={{ 
-          background: "#14171E", 
-          border: "1px solid rgba(200,169,81,0.08)", 
-          borderRadius: "4px", 
-          padding: "1.25rem", 
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.8rem",
-          position: "relative",
-          flex: 1,
-          minWidth: 0
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
-                SABBATH THIS WEEK
-              </div>
-              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
-                {sabbathCount}
-              </div>
-            </div>
-            {sabbathCount >= 1 && (
-              <div style={{ 
-                background: "rgba(200,169,81,0.1)", 
-                border: "1px solid rgba(200,169,81,0.3)", 
-                color: "#C8A951", 
-                fontSize: "0.65rem", 
-                padding: "3px 6px", 
-                borderRadius: "3px",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: "4px"
-              }}>
-                ✓ Week Complete
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{sabbathCount} / 1 this week</span>
-              {weeklyStreaks.sabbath.streak > 0 && <span style={{ fontSize: "0.65rem", color: "#8A8678" }}>🔥 {weeklyStreaks.sabbath.streak} week streak</span>}
-            </div>
-            <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-              <div style={{ 
-                width: `${Math.min(100, (sabbathCount / 1) * 100)}%`, 
-                height: "100%", 
-                background: sabbathCount >= 1 ? "#C8A951" : "rgba(200,169,81,0.3)", 
-                transition: "width 0.3s ease" 
-              }} />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <button 
-              onClick={() => updateSabbath(-1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.03)",
-                border: "1px solid rgba(200,169,81,0.08)",
-                color: "rgba(200,169,81,0.4)",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              -1
-            </button>
-            <button 
-              onClick={() => updateSabbath(1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.1)",
-                border: "1px solid rgba(200,169,81,0.2)",
-                color: "#C8A951",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              +1
-            </button>
-          </div>
-        </div>
-
-        <div style={{ 
-          background: "#14171E", 
-          border: "1px solid rgba(200,169,81,0.08)", 
-          borderRadius: "4px", 
-          padding: "1.25rem", 
-          display: "flex",
-          flexDirection: "column",
-          gap: "0.8rem",
-          position: "relative",
-          flex: 1,
-          minWidth: 0
-        }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-            <div>
-              <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
-                CONNECT / SERVE THIS WEEK
-              </div>
-              <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
-                {csCount}
-              </div>
-            </div>
-            {csCount >= 2 && (
-              <div style={{ 
-                background: "rgba(200,169,81,0.1)", 
-                border: "1px solid rgba(200,169,81,0.3)", 
-                color: "#C8A951", 
-                fontSize: "0.65rem", 
-                padding: "3px 6px", 
-                borderRadius: "3px",
-                fontWeight: 600,
-                display: "flex",
-                alignItems: "center",
-                gap: "4px"
-              }}>
-                ✓ Week Complete
-              </div>
-            )}
-          </div>
-
-          <div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
-              <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
-              {weeklyStreaks.connect.streak > 0 && <span style={{ fontSize: "0.65rem", color: "#8A8678" }}>🔥 {weeklyStreaks.connect.streak} week streak</span>}
-            </div>
-            <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
-              <div style={{ 
-                width: `${Math.min(100, (csCount / 2) * 100)}%`, 
-                height: "100%", 
-                background: csCount >= 2 ? "#C8A951" : "rgba(200,169,81,0.3)", 
-                transition: "width 0.3s ease" 
-              }} />
-            </div>
-          </div>
-
-          <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
-            <button 
-              onClick={() => updateCs(-1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.03)",
-                border: "1px solid rgba(200,169,81,0.08)",
-                color: "rgba(200,169,81,0.4)",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              -1
-            </button>
-            <button 
-              onClick={() => updateCs(1)}
-              style={{
-                flex: 1,
-                padding: "0.6rem",
-                background: "rgba(200,169,81,0.1)",
-                border: "1px solid rgba(200,169,81,0.2)",
-                color: "#C8A951",
-                borderRadius: "3px",
-                cursor: "pointer",
-                fontSize: "0.8rem",
-                fontWeight: 600,
-                transition: "all 0.2s"
-              }}
-            >
-              +1
-            </button>
-          </div>
-        </div>
+        <WeeklyCounterCard
+          title="MOVEMENT THIS WEEK"
+          count={moveCount}
+          target={4}
+          streak={weeklyStreaks.movement?.streak || 0}
+          onIncrement={() => updateMovement(1)}
+          onDecrement={() => updateMovement(-1)}
+        />
+        <WeeklyCounterCard
+          title="SABBATH THIS WEEK"
+          count={sabbathCount}
+          target={1}
+          streak={weeklyStreaks.sabbath?.streak || 0}
+          onIncrement={() => updateSabbath(1)}
+          onDecrement={() => updateSabbath(-1)}
+        />
+        <WeeklyCounterCard
+          title="CONNECT / SERVE THIS WEEK"
+          count={csCount}
+          target={2}
+          streak={weeklyStreaks.connect?.streak || 0}
+          onIncrement={() => updateCs(1)}
+          onDecrement={() => updateCs(-1)}
+        />
       </div>
 
       <Awards
