@@ -2,8 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { ld, sv } from "../utils/storage";
 
 const CATEGORIES = [
-  { id: 'irBriefs', name: 'BS IR Briefs', target: 5 },
-  { id: 'xArticles', name: 'X Articles', target: 5 },
+  { id: 'irBriefs', name: 'BS IR Briefs', target: 3 },
+  { id: 'xArticles', name: 'X Articles', target: 3 },
   { id: 'tweets', name: 'X Tweets', target: 15 },
 ];
 

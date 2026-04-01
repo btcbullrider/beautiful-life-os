@@ -10,7 +10,6 @@ import {
   calcPracticeLongest
 } from "../utils/streaks";
 
-import HeatmapCalendar from "./tracker/HeatmapCalendar";
 import PracticeStreaks from "./tracker/PracticeStreaks";
 import PracticeModal from "./tracker/PracticeModal";
 import Awards from "./tracker/Awards";
@@ -20,6 +19,40 @@ import StatsRow from "./tracker/StatsRow";
 export default function TrackerTab({ history, updateHistoryItem, data, persist, gamification, saveGamification }) {
   const [editingDate, setEditingDate] = useState(null);
   const [viewingPractice, setViewingPractice] = useState(null);
+  const [calendarOffset, setCalendarOffset] = useState(0);
+
+  const sabbathWeekKey = (() => {
+    const d = new Date();
+    const day = d.getDay();
+    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+    const monday = new Date(d.setDate(diff));
+    return monday.toISOString().split("T")[0];
+  })();
+
+  const [csData, setCsData] = useState(() => {
+    try {
+      const saved = JSON.parse(localStorage.getItem("beautiful-life-os-v3")) || {};
+      return saved.connectServe || { weekly: {} };
+    } catch {
+      return { weekly: {} };
+    }
+  });
+
+  const updateCs = (delta) => {
+    const currentCount = csData.weekly?.[sabbathWeekKey] || 0;
+    const nextCount = Math.max(0, currentCount + delta);
+    const nextCsData = { ...csData, weekly: { ...csData.weekly, [sabbathWeekKey]: nextCount } };
+    setCsData(nextCsData);
+    try {
+      const full = JSON.parse(localStorage.getItem("beautiful-life-os-v3")) || {};
+      full.connectServe = nextCsData;
+      localStorage.setItem("beautiful-life-os-v3", JSON.stringify(full));
+    } catch (e) {
+      console.error("Error saving connectServe", e);
+    }
+  };
+
+  const csCount = csData.weekly?.[sabbathWeekKey] || 0;
 
   const currentMonthKey = new Date().toISOString().slice(0, 7);
 
@@ -42,7 +75,6 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       });
     });
 
-    // Add Sabbath
     if (data.sabbath) {
       Object.entries(data.sabbath).forEach(([k, v]) => {
         if (v && k.startsWith(currentMonthKey.slice(0,7))) {
@@ -92,7 +124,6 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
     }
   }, [monthlyPerPillar]);
 
-  // Compute stats
   const days = Object.keys(history).sort();
   const activeDays = days.filter(d => history[d].count > 0);
   const perfectDays = days.filter(d => history[d].count === history[d].total);
@@ -108,7 +139,6 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
     totalDays: days.filter(d => history[d].items && history[d].items.includes(c.id)).length
   }));
 
-  // Awards system
   const getAward = (streak) => {
     if (streak >= 365) return { icon: "\u{1F451}", title: "Year of the Lord", desc: "365 perfect days", color: "#C8A951" };
     if (streak >= 100) return { icon: "\u{1F525}", title: "Refined by Fire", desc: "100 perfect days", color: "#E8743A" };
@@ -138,7 +168,6 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   const today = new Date();
   const todayStr = today.toISOString().slice(0, 10);
 
-  // Compute Weekly Workout count
   const getWeekStart = () => {
     const todayStr = new Date().toISOString().split("T")[0];
     const d = new Date(todayStr + "T12:00:00Z");
@@ -158,20 +187,10 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
   
   const moveCount = weekDates.filter(dateKey => data.habits?.[dateKey]?.["exercise"] === true).length;
 
-  // Sabbath logic
-  const sabbathWeekKey = (() => {
-    const d = new Date();
-    const day = d.getDay();
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1);
-    const monday = new Date(d.setDate(diff));
-    return monday.toISOString().split("T")[0];
-  })();
-
   const isSabbathObserved = data?.sabbath?.[sabbathWeekKey] === true;
   const totalObservedWeeks = Object.values(data?.sabbath || {}).filter(v => v === true).length;
 
   const toggleSabbath = () => {
-    console.log("toggleSabbath called", sabbathWeekKey, isSabbathObserved);
     if (!data || !persist) return;
     const newState = !isSabbathObserved;
     persist({ ...data, sabbath: { ...data.sabbath, [sabbathWeekKey]: newState }});
@@ -184,6 +203,25 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
       saveGamification(updated);
     }
   };
+
+  // Calendar logic directly in Tracker
+  const getHeatColor = (count, total, isFuture) => {
+    if (isFuture) return "transparent";
+    if (count === 0) return "rgba(255,255,255,0.04)";
+    if (count === total) return "#C8A951";
+    const ratio = count / total;
+    if (ratio >= 0.7) return "rgba(200,169,81,0.5)";
+    if (ratio >= 0.4) return "rgba(200,169,81,0.25)";
+    return "rgba(200,169,81,0.12)";
+  };
+
+  const getMonthData = (offset) => {
+    const d = new Date(today.getFullYear(), today.getMonth() - offset, 1);
+    return { year: d.getFullYear(), month: d.getMonth() };
+  };
+
+  const displayMonths = [getMonthData(calendarOffset + 1), getMonthData(calendarOffset)];
+  const dayHeaders = ["M", "T", "W", "T", "F", "S", "S"];
 
   return (
     <div>
@@ -241,6 +279,96 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
         </div>
       </div>
 
+      <div style={{ 
+        background: "#14171E", 
+        border: "1px solid rgba(200,169,81,0.08)", 
+        borderRadius: "4px", 
+        padding: "1.25rem", 
+        marginBottom: "1.5rem",
+        display: "flex",
+        flexDirection: "column",
+        gap: "0.8rem",
+        position: "relative"
+      }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+          <div>
+            <div style={{ fontSize: "0.65rem", color: "#C8A951", letterSpacing: "0.1em", textTransform: "uppercase", fontWeight: 600, marginBottom: "0.3rem" }}>
+              CONNECT / SERVE THIS WEEK
+            </div>
+            <div style={{ fontSize: "1.8rem", fontWeight: 700, color: "#E8E4DC" }}>
+              {csCount}
+            </div>
+          </div>
+          {csCount >= 2 && (
+            <div style={{ 
+              background: "rgba(90,138,106,0.1)", 
+              border: "1px solid rgba(90,138,106,0.3)", 
+              color: "#5A8A6A", 
+              fontSize: "0.65rem", 
+              padding: "3px 6px", 
+              borderRadius: "3px",
+              fontWeight: 600,
+              display: "flex",
+              alignItems: "center",
+              gap: "4px"
+            }}>
+              ✓ Week Complete
+            </div>
+          )}
+        </div>
+
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
+            <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
+          </div>
+          <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden", marginBottom: "0.8rem" }}>
+            <div style={{ 
+              width: `${Math.min(100, (csCount / 2) * 100)}%`, 
+              height: "100%", 
+              background: csCount >= 2 ? "#C8A951" : "rgba(200,169,81,0.3)", 
+              transition: "width 0.3s ease" 
+            }} />
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: "0.5rem", marginTop: "0.5rem" }}>
+          <button 
+            onClick={() => updateCs(-1)}
+            style={{
+              flex: 1,
+              padding: "0.6rem",
+              background: "rgba(200,169,81,0.03)",
+              border: "1px solid rgba(200,169,81,0.08)",
+              color: "rgba(200,169,81,0.4)",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              transition: "all 0.2s"
+            }}
+          >
+            -1
+          </button>
+          <button 
+            onClick={() => updateCs(1)}
+            style={{
+              flex: 1,
+              padding: "0.6rem",
+              background: "rgba(200,169,81,0.1)",
+              border: "1px solid rgba(200,169,81,0.2)",
+              color: "#C8A951",
+              borderRadius: "3px",
+              cursor: "pointer",
+              fontSize: "0.8rem",
+              fontWeight: 600,
+              transition: "all 0.2s"
+            }}
+          >
+            +1
+          </button>
+        </div>
+      </div>
+
       <Awards
         currentAward={currentAward}
         nextAward={nextAward}
@@ -255,10 +383,71 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
         totalPerfect={totalPerfect}
       />
 
-      <HeatmapCalendar
-        history={history}
-        setEditingDate={setEditingDate}
-      />
+      <div style={{ marginBottom: "2rem" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "0.8rem" }}>
+          <button 
+            onClick={() => setCalendarOffset(prev => prev + 1)}
+            style={{ background: "none", border: "none", color: "#C8A951", fontSize: "1.2rem", cursor: "pointer", transition: "0.2s", padding: 0 }}
+          >
+            ‹
+          </button>
+          <div style={{ fontSize: "0.65rem", letterSpacing: "0.15em", textTransform: "uppercase", color: "#8A8678" }}>YOUR JOURNEY</div>
+          <button 
+            onClick={() => setCalendarOffset(prev => Math.max(0, prev - 1))}
+            disabled={calendarOffset === 0}
+            style={{ background: "none", border: "none", color: "#C8A951", fontSize: "1.2rem", cursor: calendarOffset === 0 ? "default" : "pointer", opacity: calendarOffset === 0 ? 0.3 : 1, transition: "0.2s", padding: 0 }}
+          >
+            ›
+          </button>
+        </div>
+
+        <div style={{ display: "flex", gap: "24px" }}>
+          {displayMonths.map((m, mi) => {
+            const firstDay = new Date(m.year, m.month, 1);
+            const daysInMonth = new Date(m.year, m.month + 1, 0).getDate();
+            const startDow = (firstDay.getDay() + 6) % 7;
+            const monthLabel = firstDay.toLocaleDateString("en-US", { month: "short", year: "numeric" });
+            const cells = [];
+            for (let i = 0; i < startDow; i++) cells.push(null);
+            for (let d = 1; d <= daysInMonth; d++) {
+              const ds = `${m.year}-${String(m.month + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+              const entry = history[ds];
+              const isFuture = new Date(ds + "T12:00:00") > today;
+              cells.push({ day: d, date: ds, isFuture, count: entry ? entry.count : 0, total: entry ? entry.total : CL.length });
+            }
+            return (
+              <div key={mi} style={{ flex: 1 }}>
+                <div style={{ fontSize: "0.75rem", color: "#8A8678", marginBottom: "0.4rem", fontWeight: 500 }}>{monthLabel}</div>
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 2 }}>
+                  {dayHeaders.map((h, hi) => <div key={hi} style={{ fontSize: "0.6rem", color: "#5A5A4A", textAlign: "center", paddingBottom: 2 }}>{h}</div>)}
+                  {cells.map((cell, ci) => cell === null ? (
+                    <div key={"e" + ci} />
+                  ) : (
+                    <div key={cell.date} title={cell.isFuture ? "" : `${cell.date}: ${cell.count}/${cell.total}`} style={{
+                      width: "100%", aspectRatio: "1", borderRadius: 2,
+                      background: getHeatColor(cell.count, cell.total, cell.isFuture),
+                      border: cell.date === todayStr ? "1.5px solid #C8A951" : "none",
+                      display: "flex", alignItems: "center", justifyContent: "center",
+                      fontSize: "0.6rem", color: cell.isFuture ? "#2A2A2A" : cell.count > 0 ? "#0D0F14" : "#4A4A3A",
+                      fontWeight: cell.date === todayStr ? 600 : 400,
+                      cursor: cell.isFuture ? "default" : "pointer"
+                    }} onClick={() => { if (!cell.isFuture) setEditingDate(cell.date); }}>{cell.day}</div>
+                  ))}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        
+        {/* Legend */}
+        <div style={{ display: "flex", alignItems: "center", gap: "0.4rem", justifyContent: "flex-end", marginTop: "0.8rem" }}>
+          <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>Less</span>
+          {["rgba(255,255,255,0.04)", "rgba(200,169,81,0.12)", "rgba(200,169,81,0.25)", "rgba(200,169,81,0.5)", "#C8A951"].map((c, i) => (
+            <div key={i} style={{ width: 10, height: 10, borderRadius: 1, background: c }} />
+          ))}
+          <span style={{ fontSize: "0.5rem", color: "#5A5A4A" }}>More</span>
+        </div>
+      </div>
 
       <PracticeStreaks
         practiceStats={practiceStats}

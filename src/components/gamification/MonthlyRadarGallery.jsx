@@ -1,7 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import AttributesWeb from '../gamification/AttributesWeb';
 
 export default function MonthlyRadarGallery({ data, CL }) {
+  const [offset, setOffset] = useState(0);
+
   if (!data?.habits || Object.keys(data.habits).length === 0) {
     return (
       <div style={{ padding: "2rem 0" }}>
@@ -97,8 +99,16 @@ export default function MonthlyRadarGallery({ data, CL }) {
     }
   });
 
-  const monthKeys = Object.keys(monthsMap).sort().reverse();
-  const currentMonthStr = new Date().toISOString().slice(0, 7);
+  const getMonthStr = (monthOffset) => {
+    const today = new Date();
+    const d = new Date(today.getFullYear(), today.getMonth() - monthOffset, 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, '0');
+    return `${y}-${m}`;
+  };
+
+  const currentMonthStr = getMonthStr(0);
+  const displayMonths = [getMonthStr(offset + 1), getMonthStr(offset)];
 
   const formatMonth = (str) => {
     const [y, m] = str.split("-");
@@ -108,23 +118,39 @@ export default function MonthlyRadarGallery({ data, CL }) {
 
   return (
     <div style={{ marginTop: "2rem" }}>
-      <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "1rem" }}>
-        MONTHLY ATTRIBUTES
+      <div style={{ display: "flex", alignItems: "center", gap: "1rem", marginBottom: "1rem" }}>
+        <button 
+          onClick={() => setOffset(prev => prev + 1)}
+          style={{ background: "none", border: "none", color: "#C8A951", fontSize: "1.2rem", cursor: "pointer", transition: "0.2s", padding: 0 }}
+        >
+          ‹
+        </button>
+        <div style={{ fontSize: "10px", color: "#C8A951", letterSpacing: "0.15em", textTransform: "uppercase" }}>
+          MONTHLY ATTRIBUTES
+        </div>
+        <button 
+          onClick={() => setOffset(prev => Math.max(0, prev - 1))}
+          disabled={offset === 0}
+          style={{ background: "none", border: "none", color: "#C8A951", fontSize: "1.2rem", cursor: offset === 0 ? "default" : "pointer", opacity: offset === 0 ? 0.3 : 1, transition: "0.2s", padding: 0 }}
+        >
+          ›
+        </button>
       </div>
+
       <div style={{ 
         display: "flex", 
-        flexWrap: "wrap",
-        gap: "16px", 
+        gap: "24px", 
         paddingBottom: "1rem"
       }}>
-        {monthKeys.map(mk => {
+        {displayMonths.map(mk => {
           const isThisMonth = mk === currentMonthStr;
+          const monthData = monthsMap[mk] || { perPillar: {} };
+          
           return (
             <div 
               key={mk}
               style={{
-                flex: "1 1 280px",
-                minWidth: "280px",
+                flex: "1",
                 minHeight: "420px",
                 display: "flex",
                 flexDirection: "column",
@@ -153,7 +179,7 @@ export default function MonthlyRadarGallery({ data, CL }) {
                 )}
               </div>
               <div style={{ flex: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <AttributesWeb perPillar={monthsMap[mk].perPillar} />
+                <AttributesWeb perPillar={monthData.perPillar} />
               </div>
             </div>
           );
