@@ -301,9 +301,9 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
           </div>
           {csCount >= 2 && (
             <div style={{ 
-              background: "rgba(90,138,106,0.1)", 
-              border: "1px solid rgba(90,138,106,0.3)", 
-              color: "#5A8A6A", 
+              background: "rgba(200,169,81,0.1)", 
+              border: "1px solid rgba(200,169,81,0.3)", 
+              color: "#C8A951", 
               fontSize: "0.65rem", 
               padding: "3px 6px", 
               borderRadius: "3px",
@@ -321,7 +321,7 @@ export default function TrackerTab({ history, updateHistoryItem, data, persist, 
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "0.4rem" }}>
             <span style={{ fontSize: "0.75rem", color: "#8A8678" }}>{csCount} / 2 this week</span>
           </div>
-          <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden", marginBottom: "0.8rem" }}>
+          <div style={{ width: "100%", height: "4px", background: "rgba(255,255,255,0.04)", borderRadius: "2px", overflow: "hidden" }}>
             <div style={{ 
               width: `${Math.min(100, (csCount / 2) * 100)}%`, 
               height: "100%", 
