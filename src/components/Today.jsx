@@ -4,6 +4,7 @@ import DailyDevotional from "./DailyDevotional";
 import { ld, sv, TODAY } from "../utils/storage";
 import HabitGroup from "./today/HabitGroup";
 import EnergyCheck from "./today/EnergyCheck";
+import DailyChallenges from "./DailyChallenges";
 
 export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo, onChangeJo, removedHabits }) {
   const [expanded, setExpanded] = useState(null);
@@ -167,6 +168,7 @@ export default function TodayTab({ ck, tog, prog, cc, tot, order, onReorder, jo,
   const onDragEnd = () => { setDragId(null); setOverId(null); setOverCat(null); };
 
   return (<div>
+    <DailyChallenges ck={ck} />
     <div style={{ marginBottom: "2rem" }}>
       <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "0.5rem" }}>
         <span style={{ fontSize: "0.72rem", color: "#8A8678", letterSpacing: "0.1em", textTransform: "uppercase" }}>Daily Coherence</span>
